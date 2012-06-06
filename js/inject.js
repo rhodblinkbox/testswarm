@@ -89,7 +89,42 @@
 			.replace( /\s+/g, " " );
 	}
 
+	function log(message)
+	{
+		var span = document.createElement( "span" );
+		span.innerText = message;
+		
+		var strong = document.createElement( "strong" );
+		strong.innerText = new Date().toString().replace( /^\w+ /, "" ).replace( /:[^:]+$/, "" ) + ": ";
+		
+		var li = document.createElement( "li" );
+		li.appendChild(strong);
+		li.appendChild(span);
+		getLogger().appendChild(li);
+	}
+	
+	var logger = null;
+	function getLogger()
+	{
+		if(!logger) {
+			logger = document.createElement( "ul" );
+			logger.id = "logger";		
+		}
+		
+		if(document.body && !document.getElementById('logger'))
+		{
+			var logHeader = document.createElement( 'h1' );
+			logHeader.innerText = "Testswarm execution logs:";
+			document.body.appendChild( logHeader );
+			document.body.appendChild( logger );
+		}
+	
+		return logger;		
+	}	
+
 	function submit( params ) {
+		log('submitting form...');	
+
 		var form, i, input, key, paramItems, parts, query;
 
 		if ( curHeartbeat ) {
@@ -132,6 +167,7 @@
 			}
 
 		} else {
+			log('building form');
 			form = document.createElement( "form" );
 			form.action = url;
 			form.method = "POST";
@@ -153,8 +189,11 @@
 					submit( params );
 				}, submitTimeout * 1000);
 
+				log('adding for to document');
 				document.body.appendChild( form );
+				log('submit form');				
 				form.submit();
+				log('form submitted!');				
 			}
 		}
 	}
@@ -171,6 +210,7 @@
 	}
 
 	window.onerror = function ( e ) {
+		log( "ERROR: " + e );
 		document.body.appendChild( document.createTextNode( "ERROR: " + e ));
 		submit({ fail: 0, error: 1, total: 1 });
 		return false;
@@ -194,6 +234,135 @@
 	};
 
 	testFrameworks = {
+		"Jasmine": {
+			detect: function() {
+				return typeof jasmine !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+			},
+			install: function() {
+				log('installing Jasmine framework support');
+				
+				var jasmineTestSwarmResults = null;
+				
+				var testSwarmReporter = {
+                    reportRunnerStarting: function (runner)
+                    {
+                        log('Jasmine reportRunnerStarting');
+						// reset counters
+						jasmineTestSwarmResults = {
+							fail: 0,
+							error: 0,
+							total: 0
+						};
+                    },
+                    reportRunnerResults: function (runner)
+                    {
+                        // testing finished
+						log('Jasmine reportRunnerResults');
+						submit(jasmineTestSwarmResults);						
+                    },
+                    reportSuiteResults: function (suite)
+                    {
+                        log('Jasmine reportSuiteResults:' + suite.description);
+						// not in use
+                    },
+                    reportSpecStarting: function (spec)
+                    {
+                        log('Jasmine reportSpecStarting' + spec.description);
+						jasmineTestSwarmResults.total++;
+						window.TestSwarm.heartbeat();	// we are still alive, trigger heartbeat so test execution won't time out
+                    },
+                    reportSpecResults: function (spec)
+                    {
+						log('Jasmine reportSpecResults: ' + spec.description);
+						
+                        if(spec.results().failedCount>0)
+							jasmineTestSwarmResults.fail++;
+                    },
+                    log: function (str)
+                    {
+                        log('Jasmine says: ' + str);
+                    }
+                };
+				
+				window.TestSwarm.serialize = function () {
+					// take only the #wrapper and #html as a test result
+					remove('content');					
+					return trimSerialize();
+				};
+				
+				var jasmineEnv = jasmine.getEnv();
+                jasmineEnv.addReporter(testSwarmReporter);
+				
+				log('Jasmine injected!');	
+			}		
+		},	
+		
+		// AngularJS
+		// http://docs.angularjs.org/guide/dev_guide.e2e-testing
+		"AngularJS": {
+			detect: function() {
+				log('detecting AngularJS framework');
+				var isDetected = typeof angular !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+				log('AngularkJS framework detected: ' + isDetected);
+				return isDetected;
+			},
+			install: function() {
+				log('installing AngularJS framework support');
+		
+				window.TestSwarm.serialize = function () {
+					// take only the #wrapper and #html as a test result
+					remove('json');
+					remove('xml');
+					remove('object');
+					remove('angularJsSwarm');
+					remove('application');
+					
+					return trimSerialize();
+				};
+				
+				angular.scenario.output('angularJsSwarm', function(context, runner, model) {
+				
+					var resetResults = function() {
+						angular.testSwarmResults = {
+								fail: 0,
+								error: 0,
+								total: 0
+							};
+					};
+					
+					resetResults();
+							
+					model.on('SpecBegin', function(spec) {
+						log('Spec Begin: ' + spec.name);
+						angular.testSwarmResults.total++;
+						window.TestSwarm.heartbeat();	// we are still alive, trigger heartbeat so test execution won't time out
+					});
+					
+					model.on('SpecEnd', function(spec) {
+						log('Spec End: ' + spec.name);
+						
+						switch(spec.status)
+						{
+							case 'failure':
+								angular.testSwarmResults.fail++;
+								break;
+							case 'error':
+								angular.testSwarmResults.error++;
+								break;
+						}
+					});
+
+					model.on('RunnerEnd', function() {
+						log('RunnerEnd');
+						submit(angular.testSwarmResults);
+						resetResults();
+					});
+				});
+				
+				log('AngularJS injected!');	
+			}		
+		},	
+		
 		// QUnit (by jQuery)
 		// http://docs.jquery.com/QUnit
 		"QUnit": {
