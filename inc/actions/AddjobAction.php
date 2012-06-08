@@ -97,13 +97,21 @@ class AddjobAction extends Action {
 		}
 
 		// Authenticate
+		/** not sure what auth should be so it's not used
+		* $authUserId = $db->getOne(str_queryf(
+		*	"SELECT id
+		*	FROM users
+		*	WHERE name = %s
+		*	AND   auth = %s;",
+		*	$authUsername,
+		*	$authToken
+		*));
+		*/
 		$authUserId = $db->getOne(str_queryf(
 			"SELECT id
 			FROM users
-			WHERE name = %s
-			AND   auth = %s;",
-			$authUsername,
-			$authToken
+			WHERE name = %s;",
+			$authUsername
 		));
 
 		if ( !$authUserId ) {

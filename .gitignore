@@ -1,6 +1,5 @@
 # Created while installing/using TestSwarm
 .htaccess
-cache/*
 config/testswarm.json
 favicon.ico
 robots.txt
@@ -14,3 +13,6 @@ testswarm.ini
 ## Mac OS X
 .DS_Store
 ._*
+
+/cache/version_info.json
+/cache/phpbrowscap/cache.php
