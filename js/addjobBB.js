@@ -32,7 +32,7 @@ jQuery(function ($) {
 					.end()
 					.find('[id*="1"]').attr('id', fixNum)
 					.end()
-					.find('legend').text(fixNum)
+					.find('legend span').text(fixNum)
 					.end()
 			);
 		})
@@ -41,11 +41,14 @@ jQuery(function ($) {
 
 	$runsContainer.append( $addRunBtn );
 	
-	// toggle browser details. TODO: use 
 	$('input[name="browserSets[]"]').click(function() {
 		var checked = $(this).is(':checked');
 		$(this).siblings('.browser-details').toggleClass('hide', !checked);		
 	});	
 	
 	$('.po').popover();
+	
+	$('.removeRun').live('click', function() { 
+		$(this).parent().parent().remove();
+	});
 });

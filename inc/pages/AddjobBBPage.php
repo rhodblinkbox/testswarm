@@ -162,7 +162,7 @@ HTML;
 	private function getRun($i, $name = null, $url = null) {
 		return <<<HTML
 				<fieldset>
-					<legend>Run $i</legend>
+					<legend><span>Run $i</span>&nbsp;<i class="icon-remove-sign removeRun"></i></legend>
 					<label for="form-runNames1">Run name:</label>
 					<input type="text" name="runNames[]" id="form-runNames$i" maxlength="255" value="$name">
 					<br>
