@@ -63,6 +63,7 @@ class AddjobbbPage extends Page {
 		$runMax = $request->getVal('runMax', 3);
 		$runNames = $request->getArray('runNames');
 		$runUrls = $request->getArray('runUrls');	
+		$selectedBrowsers = $request->getArray('browsers');	
 		
 		if($authUsername) {
 			$userName = $authUsername;
@@ -133,11 +134,18 @@ HTML;
 					$browsersHtml .= '<br>';
 				}
 				$browsersHtml .= htmlspecialchars( $swarmUaIndex->$browser->displaytitle );
-			}
+			}		
+			$checked = "";
+			foreach ( $selectedBrowsers as $b ) {
+					if($b == $set) {
+					$checked = "checked=\"checked\"";
+					break;
+				}
+			}			
 			$formHtml .= <<<HTML
 		<div class="control-group">
 			<label class="checkbox" for="form-browserset-$set">
-				<input type="checkbox" name="browserSets[]" value="$set" id="form-browserset-$set">
+				<input type="checkbox" name="browserSets[]" value="$set" id="form-browserset-$set" $checked>
 				<strong>$set</strong>: $browsersHtml.
 			</label>
 		</div>
