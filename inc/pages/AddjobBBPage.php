@@ -24,6 +24,7 @@ class AddjobbbPage extends Page {
 		$this->bodyScripts[] = swarmpath( "js/addjobBB.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-tooltip.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-popover.js" );
+		$this->bodyScripts[] = swarmpath( "js/bootstrap-button.js" );
 
 		$html = "";
 
@@ -59,17 +60,13 @@ class AddjobbbPage extends Page {
 		$userName = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes"  ? htmlspecialchars( $request->getSessionData( "username" ) ) : "";
 
 		// fields to be taken from the querystring:
-		$authUsername = $request->getVal('authUsername'); 
-		$authToken = $request->getVal('authToken'); 
+		$userName = $request->getVal('authUsername') ?: $userName;
+		$authToken = $request->getVal('authToken') ?: 123; 
 		$jobName = $request->getVal('jobName');
-		$runMax = $request->getVal('runMax', 3);
+		$runMax = $request->getVal('runMax') ?: 3;
 		$runNames = $request->getArray('runNames');
 		$runUrls = $request->getArray('runUrls');	
 		$selectedBrowsers = $request->getArray('browsers');	
-		
-		if($authUsername) {
-			$userName = $authUsername;
-		}
 		
 		if ( $runNames && !$runUrls || !$runNames && $runUrls || $runNames && $runUrls && count($runNames) != count($runUrls) ) {
 			throw new SwarmException( "runNames and runUrls must have the same number of elements in the array" );
@@ -77,6 +74,17 @@ class AddjobbbPage extends Page {
 		}
 		
 		$formHtml = <<<HTML
+
+<div class="alert alert-block">
+    <a class="close" data-dismiss="alert" href="#">×</a>
+    <h4 class="alert-heading">TODO!</h4>
+    <ul>
+		<li>Run tick selection: Default the selection to to "same as last time", "all".</li>
+		<li>Move job name to header</li>
+		<li>Form submission isn't validated!</li>
+	</ul>
+</div>
+			
 <form action="$addjobPageUrl" method="post" class="form-horizontal">
 	<div class="row">
 		<div class="span6">
@@ -85,23 +93,6 @@ HTML;
 		$formHtml .= <<<HTML
 		</div>
 		<div class="span6">
-		
-			<fieldset>
-				<legend>Authentication</legend>
-
-				<div class="control-group">
-					<label class="control-label" for="form-authUsername">User name:</label>
-					<div class="controls">
-						<input type="text" name="authUsername" value="$userName" id="form-authUsername">
-					</div>
-				</div>
-				<div class="control-group">
-					<label class="control-label" for="form-authToken">Auth token:</label>
-					<div class="controls">
-						<input type="text" name="authToken" id="form-authToken" class="input-xlarge" value="$authToken">
-					</div>
-				</div>
-			</fieldset>
 			
 			<fieldset>
 				<legend>Job information</legend>
@@ -112,24 +103,22 @@ HTML;
 						<input type="text" name="jobName" id="form-jobName" class="input-xlarge" maxlength="255" value="$jobName">
 						<span class="help-inline">HTML, up to 255 characters</span>
 					</div>
-				</div>
-				<div class="control-group">
-					<label class="control-label" for="form-runMax">Run max:</label>
-					<div class="controls">
-						<input type="number" size="5" name="runMax" id="form-runMax" value="$runMax" min="1" max="99">
-						<i class="icon-question-sign po" data-title="Run max" data-content='This is the maximum number of times a run is ran in a user agent. If a run passes
-						without failures then it is only ran once. If it does not pass, TestSwarm will re-try the run
-						(up to "Run max" times) for that useragent to avoid error pollution due to time-outs, slow
-						computers or other unrelated conditions that can cause the server to not receive a success report.'></i>
-					</div>
-				</div>
+				</div>		
+		
 			</fieldset>
 HTML;
 		$formHtml .= <<<HTML
 
-			<fieldset class="form-inline">
+			<fieldset>
 				<legend>Runs <i class="icon-question-sign po" data-title="Runs" data-content='Each job consists of several runs. Every run has a name and a url to where that test suite can be ran. All the test suites should probably have the same common code base or some other grouping characteristic, where each run is part of the larger test suite. As example, for a QUnit test suite the <code>filter</code> url parameter can be used to only run one of the "modules" so every run would be the name of that module and the URL to the testsuite with <code>?filter=modulename</code> appended to it.'></i></legend>
 
+<label class="control-label" for="button-TickRuns">Ticked runs: &nbsp;</label>
+
+<div class="btn-group" data-toggle="buttons-radio" id="button-TickRuns">
+	<button class="btn" type="button">all</button>
+	<button class="btn" type="button">none</button>
+	<button class="btn" type="button">same as last time</button>
+</div>
 				<div id="runs-container" class="well">
 HTML;
 		if($runNames && count($runNames)>0) {
@@ -147,6 +136,36 @@ HTML;
 				</div>
 			</fieldset>
 			
+			<button class="btn" id="btnOtherInformation" type="button">Other information</button>
+			
+			<div class="well hide" id="otherInformation">
+				<fieldset>
+					<legend>Other information</legend>
+
+					<div class="control-group">
+						<label class="control-label" for="form-authUsername">User name:</label>
+						<div class="controls">
+							<input type="text" name="authUsername" value="$userName" id="form-authUsername">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="form-authToken">Auth token:</label>
+						<div class="controls">
+							<input type="text" name="authToken" id="form-authToken" class="input-xlarge" value="$authToken">
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="form-runMax">Run max:</label>
+						<div class="controls">
+							<input type="number" size="5" name="runMax" id="form-runMax" value="$runMax" min="1" max="99">
+							<i class="icon-question-sign po" data-title="Run max" data-content='This is the maximum number of times a run is ran in a user agent. If a run passes
+							without failures then it is only ran once. If it does not pass, TestSwarm will re-try the run
+							(up to "Run max" times) for that useragent to avoid error pollution due to time-outs, slow
+							computers or other unrelated conditions that can cause the server to not receive a success report.'></i>
+						</div>
+					</div>
+				</fieldset>
+			</div>
 		</div>
 	</div>
 	
@@ -163,12 +182,17 @@ HTML;
 		return <<<HTML
 				<fieldset>
 					<legend><span>Run $i</span>&nbsp;<i class="icon-remove-sign removeRun"></i></legend>
-					<label for="form-runNames1">Run name:</label>
+					<label class="checkbox">
+						<input type="checkbox" class="enableRun"> Enable
+					</label>
+					<br/>
+					<label for="form-runNames1">Name:</label>
 					<input type="text" name="runNames[]" id="form-runNames$i" maxlength="255" value="$name">
 					<br>
-					<label for="form-runUrls1">Run URL:</label>
-					<input type="text" name="runUrls[]" placeholder="http://" class="input-xlarge" id="form-runUrls$i" value="$url">
-				</fieldset>				
+					<label for="form-runUrls1">URL:</label>
+					<input type="text" name="runUrls[]" placeholder="http://" class="input-xlarge" id="form-runUrls$i" value="$url">					
+				</fieldset>	
+				<br/>
 HTML;
 	}
 	

@@ -1,10 +1,22 @@
 /**
- * JavaScript file for the "addjob" page.
+ * JavaScript file for the bb "addjob" page.
  *
- * @author Timo Tijhof, 2012
+ * @author Maciej Borzecki, 2012
  * @since 1.0.0
  * @package TestSwarm
  */
+ 
+(function($) {
+    $.fn.toggleDisabled = function() {
+        return this.each(function() {
+            var $this = $(this);
+            if ($this.attr('disabled')) $this.removeAttr('disabled');
+            else $this.attr('disabled', 'disabled');
+        });
+    };
+})(jQuery);
+
+
 jQuery(function ($) {
 	var $runsContainer, $addRunBtn, $runFieldsetClean, cnt;
 
@@ -43,12 +55,21 @@ jQuery(function ($) {
 	
 	$('input[name="browserSets[]"]').click(function() {
 		var checked = $(this).is(':checked');
-		$(this).siblings('.browser-details').toggleClass('hide', !checked);		
+		$(this).siblings('.browser-details').slideToggle(!checked);		
 	});	
 	
 	$('.po').popover();
 	
 	$('.removeRun').live('click', function() { 
 		$(this).parent().parent().remove();
+	});
+	
+	$('#btnOtherInformation').click(function() {
+		$('#otherInformation').slideToggle();
+		$(this).hide();
+	});
+	
+	$('.enableRun').live('click', function() {
+		$(this).closest('fieldset').find('input').not(this).toggleDisabled();	
 	});
 });
