@@ -22,6 +22,8 @@ class AddjobbbPage extends Page {
 
 		$this->setTitle( "Add new job BB" );
 		$this->bodyScripts[] = swarmpath( "js/addjobBB.js" );
+		$this->bodyScripts[] = swarmpath( "js/bootstrap-tooltip.js" );
+		$this->bodyScripts[] = swarmpath( "js/bootstrap-popover.js" );
 
 		$html = "";
 
@@ -115,20 +117,18 @@ HTML;
 					<label class="control-label" for="form-runMax">Run max:</label>
 					<div class="controls">
 						<input type="number" size="5" name="runMax" id="form-runMax" value="$runMax" min="1" max="99">
-						<p class="help-block">This is the maximum number of times a run is ran in a user agent. If a run passes
+						<i class="icon-question-sign po" data-title="Run max" data-content='This is the maximum number of times a run is ran in a user agent. If a run passes
 						without failures then it is only ran once. If it does not pass, TestSwarm will re-try the run
 						(up to "Run max" times) for that useragent to avoid error pollution due to time-outs, slow
-						computers or other unrelated conditions that can cause the server to not receive a success report.</p>
+						computers or other unrelated conditions that can cause the server to not receive a success report.'></i>
 					</div>
 				</div>
 			</fieldset>
 HTML;
 		$formHtml .= <<<HTML
 
-			<fieldset>
-				<legend>Runs</legend>
-
-				<p>Each job consists of several runs. Every run has a name and a url to where that test suite can be ran. All the test suites should probably have the same common code base or some other grouping characteristic, where each run is part of the larger test suite. As example, for a QUnit test suite the <code>filter</code> url parameter can be used to only run one of the "modules" so every run would be the name of that module and the URL to the testsuite with <code>?filter=modulename</code> appended to it.</p>
+			<fieldset class="form-inline">
+				<legend>Runs <i class="icon-question-sign po" data-title="Runs" data-content='Each job consists of several runs. Every run has a name and a url to where that test suite can be ran. All the test suites should probably have the same common code base or some other grouping characteristic, where each run is part of the larger test suite. As example, for a QUnit test suite the <code>filter</code> url parameter can be used to only run one of the "modules" so every run would be the name of that module and the URL to the testsuite with <code>?filter=modulename</code> appended to it.'></i></legend>
 
 				<div id="runs-container" class="well">
 HTML;
@@ -163,7 +163,6 @@ HTML;
 		return <<<HTML
 				<fieldset>
 					<legend>Run $i</legend>
-
 					<label for="form-runNames1">Run name:</label>
 					<input type="text" name="runNames[]" id="form-runNames$i" maxlength="255" value="$name">
 					<br>
@@ -176,10 +175,8 @@ HTML;
 	private function getBrowsers($conf, $swarmUaIndex, $selectedBrowsers) {
 		$formHtml = <<<HTML
 			<fieldset>
-				<legend>Browsers</legend>
-
-				<p>Choose which groups of user agents this job should be ran in. Some of the groups may
-				overlap each other, TestSwarm will detect and remove duplicate entries in the resulting set.</p>
+				<legend>Browsers <i class="icon-question-sign po" data-title="Browsers" data-content="Choose which groups of user agents this job should be ran in. Some of the groups may
+				overlap each other, TestSwarm will detect and remove duplicate entries in the resulting set."></i></legend>
 HTML;
 		foreach ( $conf->browserSets as $set => $browsers ) {
 			$set = htmlspecialchars( $set );
