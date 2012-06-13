@@ -7,17 +7,6 @@
  */
  
 (function($) {	
-	$.fn.toggleDisabled = function(disabled) {
-        return this.each(function() {
-            var $this = $(this);
-			
-			if(disabled) {
-				$this.attr('disabled', 'disabled');
-			} else {
-				$this.removeAttr('disabled')
-			}
-        });
-    };
 	
 	$.fn.serializeObject = function()
 	{
@@ -131,8 +120,8 @@ jQuery(function ($) {
 		}
 	}) ();
 	
-	// slide browser detail upon checkbox state change
 	(function setupBrowsers() {
+		// slide browser detail upon checkbox state change
 		$('input[name="browserSets[]"]').bind('slideDetails', function () {
 			var details = $(this).siblings('.browser-details');
 			var checked = $(this).is(':checked');
@@ -162,7 +151,12 @@ jQuery(function ($) {
 		// disable run depending on checkbox state
 		$('input:checkbox.enableRun').bind('disableRelatedFields', function () {
 			var checked = $(this).is(':checked');	
-			$(this).closest('fieldset').find('input').not(this).toggleDisabled(!checked);			
+			var inputs = $(this).closest('fieldset').find('input').not(this);
+			if(!checked) {
+				inputs.attr('disabled', 'disabled');
+			} else {
+				inputs.removeAttr('disabled')
+			}			
 		});
 		
 		$('input:checkbox.enableRun').live('click', function() {
@@ -174,26 +168,31 @@ jQuery(function ($) {
 			$(this).parent().parent().remove();
 		});
 		
+		// enable all runs
 		$('#button-TickRuns .all').click(function() {
 			$(this).closest('fieldset').find('input:checkbox.enableRun').not(':checked').prop('checked', true).trigger('disableRelatedFields');
 		});
 		
+		// disable all runs
 		$('#button-TickRuns .none').click(function() {
 			$(this).closest('fieldset').find('input:checkbox:checked.enableRun').prop('checked', false).trigger('disableRelatedFields');	
 		});
 		
+		// restore data from cookie
 		$('#button-TickRuns .same').click(function() {
 			var data = cookieManager.deserializeForm();
 
 			// bind state from cookies to the UI
 			$('#form-runMax').val(data.runMax);
 			
+			// restore browser sets
 			$('input[type=checkbox][name="browserSets[]"]:checked').prop('checked', false).trigger('slideDetails');
 			for(var i=0;data.browserSets && i<data.browserSets.length;i++) {
 				browserSet = data.browserSets[i];
 				$('input[type=checkbox][name="browserSets[]"][value="'+browserSet+'"]').prop('checked', true).trigger('slideDetails');
 			}
 			
+			// restore runs
 			$('input[type=checkbox].enableRun:checked').prop('checked', false).trigger('disableRelatedFields');
 			for(var i=0;data.runNames && i<data.runNames.length;i++) {
 				runName = data.runNames[i];
@@ -206,6 +205,7 @@ jQuery(function ($) {
 			}
 		});
 		
+		// disable 'same' button if no cookie found
 		if(!cookieManager.isCookieSet()) {
 			$('#button-TickRuns .same').attr('disabled', 'disabled');
 		}	
@@ -213,7 +213,8 @@ jQuery(function ($) {
 	}) ();
 	
 	// setup header
-	(function setupHeader () {
+	(function setupPageHeader () {
+		// add textbox to the header, update hidden html form field on blur
 		var $h1 = $('.container .hero-unit:first h1');
 		var $input = $('<input class="input-xxlarge" type="text" maxlength="255" id="jobName"></input>');
 		var $label = $('<label for="jobName"></label>');
