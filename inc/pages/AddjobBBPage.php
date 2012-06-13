@@ -20,12 +20,13 @@ class AddjobbbPage extends Page {
 	protected function initContent() {
 		$request = $this->getContext()->getRequest();
 
-		$this->setTitle( "Add new job BB" );
+		$this->setTitle( "Job name" );
 		$this->bodyScripts[] = swarmpath( "js/addjobBB.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-tooltip.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-popover.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-button.js" );
-
+		$this->styleSheets[] = swarmpath( "css/addjobbb.css" );
+		
 		$html = "";
 
 		$error = $this->getAction()->getError();
@@ -80,7 +81,6 @@ class AddjobbbPage extends Page {
     <h4 class="alert-heading">TODO!</h4>
     <ul>
 		<li>Run tick selection: Default the selection to to "same as last time", "all".</li>
-		<li>Move job name to header</li>
 		<li>Form submission isn't validated!</li>
 	</ul>
 </div>
@@ -94,18 +94,6 @@ HTML;
 		</div>
 		<div class="span6">
 			
-			<fieldset>
-				<legend>Job information</legend>
-
-				<div class="control-group">
-					<label class="control-label" for="form-jobName">Job name:</label>
-					<div class="controls">
-						<input type="text" name="jobName" id="form-jobName" class="input-xlarge" maxlength="255" value="$jobName">
-						<span class="help-inline">HTML, up to 255 characters</span>
-					</div>
-				</div>		
-		
-			</fieldset>
 HTML;
 		$formHtml .= <<<HTML
 
@@ -165,6 +153,7 @@ HTML;
 						</div>
 					</div>
 				</fieldset>
+				<input type="hidden" name="jobName" id="form-jobName" maxlength="255" value="$jobName">
 			</div>
 		</div>
 	</div>

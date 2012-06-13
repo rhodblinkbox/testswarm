@@ -53,23 +53,52 @@ jQuery(function ($) {
 
 	$runsContainer.append( $addRunBtn );
 	
+	// slide browser detail upon checkbox state change
 	$('input[name="browserSets[]"]').click(function() {
 		var checked = $(this).is(':checked');
 		$(this).siblings('.browser-details').slideToggle(!checked);		
 	});	
 	
+	// setup all popovers
 	$('.po').popover();
 	
+	// setup remove run button
 	$('.removeRun').live('click', function() { 
 		$(this).parent().parent().remove();
 	});
 	
+	// show more form details on button click
 	$('#btnOtherInformation').click(function() {
 		$('#otherInformation').slideToggle();
 		$(this).hide();
 	});
 	
+	// disable run depending on checkbox state
 	$('.enableRun').live('click', function() {
 		$(this).closest('fieldset').find('input').not(this).toggleDisabled();	
 	});
+	
+	// setup header
+	(function setupHeader () {
+		var $h1 = $('.container .hero-unit:first h1');
+		var $input = $('<input class="input-xxlarge" type="text" maxlength="255" id="jobName"></input>');
+		var $label = $('<label for="jobName"></label>');
+		$label.text = $h1.text();
+		$h1.append($label);
+		$h1.append($input);
+		$input.focus();
+		
+		$jobName = $('#jobName');
+		$formJobName = $('#form-jobName');
+		
+		// copy initial text
+		$jobName.val($formJobName.val());
+		
+		// setup handler so relevant form field is updated each time text is changed in the input box
+		$jobName.blur(function() {
+			$formJobName.val($(this).val());		
+		});
+		
+	})();
+	
 });
