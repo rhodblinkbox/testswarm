@@ -7,11 +7,11 @@
  */
  
 (function($) {	
-	$.fn.toggleDisabled = function(state) {
+	$.fn.toggleDisabled = function(disabled) {
         return this.each(function() {
             var $this = $(this);
 			
-			if(state) {
+			if(disabled) {
 				$this.attr('disabled', 'disabled');
 			} else {
 				$this.removeAttr('disabled')
@@ -75,10 +75,69 @@ jQuery(function ($) {
 
 	$runsContainer.append( $addRunBtn );
 	
+	var cookieManager = (function() { 
+		var cookieName = 'formdata';
+		
+		function serialize(e) {
+		
+			$('input[name="runNames[]"][value=""]').closest('fieldset').find('input[type=checkbox]:checked').prop('checked', false).triggerHandler('click');
+		
+			var formData = $('form').serializeObject();
+			var browserSets = formData["browserSets[]"] || [];	// form field can be empty, have one value or multiple items in the array
+			var runNames = formData["runNames[]"] || [];	// form field can be empty, have one value or multiple items in the array
+						
+			var data = {
+				runMax: formData.runMax,
+				browserSets: browserSets instanceof Array ? browserSets : [browserSets],
+				runNames: runNames instanceof Array ? runNames : [runNames]
+			};
+			
+			setCookie(cookieName, JSON.stringify(data), 180);
+		}
+		
+		function deserialize() {
+			return JSON.parse(getCookie(cookieName));
+		}
+		
+		function setCookie(c_name, value, exdays)
+		{
+			var exdate = new Date();
+			exdate.setDate(exdate.getDate() + exdays);
+			var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+			document.cookie = c_name + "=" + c_value;
+		}
+		
+		function isCookieSet() {
+			return getCookie(cookieName) != null;
+		}
+		
+		function getCookie(c_name)
+		{
+			var i,x,y,ARRcookies=document.cookie.split(";");
+			for (i=0;i<ARRcookies.length;i++)
+			{
+				x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+				y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+				x=x.replace(/^\s+|\s+$/g,"");
+				if (x==c_name)
+				{
+					return unescape(y);
+				}
+			}
+		}
+		
+		return {
+			serializeForm: serialize,
+			deserializeForm: deserialize,
+			isCookieSet: isCookieSet
+		}
+	}) ();
+	
 	// slide browser detail upon checkbox state change
 	$('input[name="browserSets[]"]').click(function() {
 		var details = $(this).siblings('.browser-details');
-		if( $(this).is(':checked') ) {
+		var checked = $(this).is(':checked');
+		if( checked ) {
 			details.slideDown();
 		} else {
 			details.slideUp();
@@ -99,7 +158,6 @@ jQuery(function ($) {
 		// disable run depending on checkbox state
 		$('input:checkbox.enableRun').live('click', function() {
 			var checked = $(this).is(':checked');		
-console.log(checked);	
 			$(this).closest('fieldset').find('input').not(this).toggleDisabled(!checked);	
 		});	
 
@@ -109,37 +167,36 @@ console.log(checked);
 		});
 		
 		$('#button-TickRuns .all').click(function() {
-			$(this).closest('fieldset').find('input:checkbox.enableRun').not(':checked').click();		
+			$(this).closest('fieldset').find('input:checkbox.enableRun').not(':checked').prop('checked', true).triggerHandler('click');
 		});
 		
 		$('#button-TickRuns .none').click(function() {
-			$(this).closest('fieldset').find('input:checkbox:checked.enableRun').click();		
+			$(this).closest('fieldset').find('input:checkbox:checked.enableRun').prop('checked', false).triggerHandler('click');		
 		});
 		
 		$('#button-TickRuns .same').click(function() {
-			var data = cookieManager.deserialize();
-			
+			var data = cookieManager.deserializeForm();
+
 			// bind state from cookies to the UI
 			$('#form-runMax').val(data.runMax);
 			
-			$('input[type=checkbox][name="browserSets[]"]:checked').click();
+			$('input[type=checkbox][name="browserSets[]"]:checked').prop('checked', false).triggerHandler('click');
 			for(var i=0;data.browserSets && i<data.browserSets.length;i++) {
 				browserSet = data.browserSets[i];
-				console.log(browserSet);
-				$('input[type=checkbox][name="browserSets[]"][value="'+browserSet+'"]').click();
+				$('input[type=checkbox][name="browserSets[]"][value="'+browserSet+'"]').prop('checked', true).triggerHandler('click');
 			}
 			
+			// run names are expected to be the same at all times therefore we can match on the actual value
 			for(var i=0;data.runNames && i<data.runNames.length;i++) {
 				runName = data.runNames[i];
-				console.log(runName);
-				$('input[type=text][name="runNames[]"][value="' + runName + '"]').closest('fieldset').find('input[type=checkbox]').click();
+				$('input[type=text][name="runNames[]"][value="' + runName + '"]').closest('fieldset').find('input[type=checkbox]').prop('checked', false).triggerHandler('click');
 			}
 		});
 		
-		// TODO: 
-		// - default selection to 'same as last time' if available, otherwise 'all'
-		// - disable 'same' if cookie not present
-		//$('#button-TickRuns .all').click();
+		if(!cookieManager.isCookieSet()) {
+			$('#button-TickRuns .same').attr('disabled', 'disabled');
+		}	
+		
 	}) ();
 	
 	// setup header
@@ -165,56 +222,5 @@ console.log(checked);
 		
 	}) ();
 	
-	var cookieManager = (function() { 
-		var cookieName = 'formdata';
-		
-		function serialize(e) {
-		
-			// TODO: disable runs that have empty names
-			$('input[name="runNames[]"][value=""]').closest('fieldset').find('input[type=checkbox]:checked').click();
-		
-			var formData = $('form').serializeObject();
-			var data = {
-				runMax: formData.runMax,
-				browserSets: formData["browserSets[]"],
-				runNames: formData["runNames[]"]
-			};
-			
-			setCookie(cookieName, JSON.stringify(data), 180);
-		}
-		
-		function deserialize() {
-			return JSON.parse(getCookie(cookieName));
-		}
-		
-		function setCookie(c_name, value, exdays)
-		{
-			var exdate = new Date();
-			exdate.setDate(exdate.getDate() + exdays);
-			var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-			document.cookie = c_name + "=" + c_value;
-		}
-		
-		function getCookie(c_name)
-		{
-			var i,x,y,ARRcookies=document.cookie.split(";");
-			for (i=0;i<ARRcookies.length;i++)
-			{
-				x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
-				y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
-				x=x.replace(/^\s+|\s+$/g,"");
-				if (x==c_name)
-				{
-					return unescape(y);
-				}
-			}
-		}
-		
-		return {
-			serialize: serialize,
-			deserialize: deserialize
-		}
-	}) ();
-	
-	$('form').submit(cookieManager.serialize);
+	$('form').submit(cookieManager.serializeForm);
 });

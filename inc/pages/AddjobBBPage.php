@@ -76,14 +76,6 @@ class AddjobbbPage extends Page {
 		}
 		
 		$formHtml = <<<HTML
-
-<div class="alert alert-block">
-    <a class="close" data-dismiss="alert" href="#">×</a>
-    <h4 class="alert-heading">TODO!</h4>
-    <ul>
-		<li>Run tick selection: Default the selection to to "same as last time", "all".</li>
-	</ul>
-</div>
 			
 <form action="$addjobPageUrl" method="post" class="form-horizontal">
 	<div class="row">
@@ -106,7 +98,7 @@ HTML;
 					<button class="btn all" type="button">all</button>
 					<button class="btn none" type="button">none</button>
 					<button class="btn same" type="button">same as last time</button>
-					<i class="icon-question-sign po" data-title="Same as last time" data-content='Restores runMax, browserSets and runNames fields from the cookie.'></i>
+					<i class="icon-question-sign po" data-title="Same as last time" data-content='Restores runMax, browserSets and runNames fields from the cookie. runMax value is put into the form field. browserSets are ticked. Runs from the cookie are matched against runs in the html form value.'></i>
 				</div>
 				<div id="runs-container" class="well">
 HTML;
