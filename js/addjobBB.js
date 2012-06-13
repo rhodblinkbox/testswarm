@@ -80,8 +80,6 @@ jQuery(function ($) {
 		
 		function serialize(e) {
 		
-			$('input[name="runNames[]"][value=""]').closest('fieldset').find('input[type=checkbox]:checked').prop('checked', false).triggerHandler('click');
-		
 			var formData = $('form').serializeObject();
 			var browserSets = formData["browserSets[]"] || [];	// form field can be empty, have one value or multiple items in the array
 			var runNames = formData["runNames[]"] || [];	// form field can be empty, have one value or multiple items in the array
@@ -222,5 +220,11 @@ jQuery(function ($) {
 		
 	}) ();
 	
-	$('form').submit(cookieManager.serializeForm);
+	$('form').submit(function(e) {
+		
+		// disable runs without ticket checkbox
+		$('input:checkbox.enableRun').not(':checked').closest('fieldset').find('input').not('.enableRun').attr('disabled', 'disabled');
+		
+		cookieManager.serializeForm(e);	
+	});
 });
