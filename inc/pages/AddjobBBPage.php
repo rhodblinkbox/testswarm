@@ -25,6 +25,7 @@ class AddjobbbPage extends Page {
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-tooltip.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-popover.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-button.js" );
+		$this->bodyScripts[] = swarmpath( "js/json2.js" );
 		$this->styleSheets[] = swarmpath( "css/addjobbb.css" );
 		
 		$html = "";
@@ -57,7 +58,7 @@ class AddjobbbPage extends Page {
 
 		$swarmUaIndex = BrowserInfo::getSwarmUAIndex();
 
-		$addjobPageUrl = htmlspecialchars( swarmpath( "addjob" ) );
+		$addjobPageUrl = htmlspecialchars( swarmpath( "addjobbb" ) );
 		$userName = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes"  ? htmlspecialchars( $request->getSessionData( "username" ) ) : "";
 
 		// fields to be taken from the querystring:
@@ -81,7 +82,6 @@ class AddjobbbPage extends Page {
     <h4 class="alert-heading">TODO!</h4>
     <ul>
 		<li>Run tick selection: Default the selection to to "same as last time", "all".</li>
-		<li>Form submission isn't validated!</li>
 	</ul>
 </div>
 			
@@ -106,6 +106,7 @@ HTML;
 					<button class="btn all" type="button">all</button>
 					<button class="btn none" type="button">none</button>
 					<button class="btn same" type="button">same as last time</button>
+					<i class="icon-question-sign po" data-title="Same as last time" data-content='Restores runMax, browserSets and runNames fields from the cookie.'></i>
 				</div>
 				<div id="runs-container" class="well">
 HTML;
@@ -168,11 +169,15 @@ HTML;
 	}
 	
 	private function getRun($i, $name = null, $url = null) {
+		$enabled = $name && $url;
+		$checked = $enabled ? "checked=\"checked\"" : '';
+		//$disableInput = $enabled ? '' : 'disabled=\"disabled\"';
+		
 		return <<<HTML
 				<fieldset>
 					<legend><span>Run $i</span>&nbsp;<i class="icon-remove-sign removeRun"></i></legend>
 					<label class="checkbox">
-						<input type="checkbox" class="enableRun"> Enable
+						<input type="checkbox" class="enableRun" $checked> Enable
 					</label>
 					<br/>
 					<label for="form-runNames1">Name:</label>
@@ -202,15 +207,17 @@ HTML;
 				$browsersHtml .= htmlspecialchars( $swarmUaIndex->$browser->displaytitle );
 			}		
 			$checked = "";
-			$hideBrowserDetails = "";
-			foreach ( $selectedBrowsers as $b ) {
-				if($b == $set) {
-					$checked = "checked=\"checked\"";
-					break;
-				} else {
-					$hideBrowserDetails = "hide";
-				}
-			}			
+			$hideBrowserDetails = "hide";
+			if($selectedBrowsers) {
+				foreach ( $selectedBrowsers as $b ) {
+					if($b == $set) {
+						$checked = "checked=\"checked\"";
+						break;
+					} else {
+						$hideBrowserDetails = "hide";
+					}
+				}			
+			}
 			$formHtml .= <<<HTML
 			<div class="control-group">
 				<label class="checkbox" for="form-browserset-$set">
