@@ -132,15 +132,21 @@ jQuery(function ($) {
 	}) ();
 	
 	// slide browser detail upon checkbox state change
-	$('input[name="browserSets[]"]').click(function() {
-		var details = $(this).siblings('.browser-details');
-		var checked = $(this).is(':checked');
-		if( checked ) {
-			details.slideDown();
-		} else {
-			details.slideUp();
-		}
-	});	
+	(function setupBrowsers() {
+		$('input[name="browserSets[]"]').bind('slideDetails', function () {
+			var details = $(this).siblings('.browser-details');
+			var checked = $(this).is(':checked');
+			if( checked ) {
+				details.slideDown();
+			} else {
+				details.slideUp();
+			}
+		});
+		
+		$('input[name="browserSets[]"]').click(function() {
+			$(this).trigger('slideDetails');
+		});	
+	}) ();
 	
 	// setup all popovers
 	$('.po').popover();
@@ -154,9 +160,13 @@ jQuery(function ($) {
 	(function setupRuns() {
 		
 		// disable run depending on checkbox state
+		$('input:checkbox.enableRun').bind('disableRelatedFields', function () {
+			var checked = $(this).is(':checked');	
+			$(this).closest('fieldset').find('input').not(this).toggleDisabled(!checked);			
+		});
+		
 		$('input:checkbox.enableRun').live('click', function() {
-			var checked = $(this).is(':checked');		
-			$(this).closest('fieldset').find('input').not(this).toggleDisabled(!checked);	
+			$(this).trigger('disableRelatedFields');
 		});	
 
 		// setup remove run button
@@ -165,11 +175,11 @@ jQuery(function ($) {
 		});
 		
 		$('#button-TickRuns .all').click(function() {
-			$(this).closest('fieldset').find('input:checkbox.enableRun').not(':checked').prop('checked', true).triggerHandler('click');
+			$(this).closest('fieldset').find('input:checkbox.enableRun').not(':checked').prop('checked', true).trigger('disableRelatedFields');
 		});
 		
 		$('#button-TickRuns .none').click(function() {
-			$(this).closest('fieldset').find('input:checkbox:checked.enableRun').prop('checked', false).triggerHandler('click');		
+			$(this).closest('fieldset').find('input:checkbox:checked.enableRun').prop('checked', false).trigger('disableRelatedFields');	
 		});
 		
 		$('#button-TickRuns .same').click(function() {
@@ -178,16 +188,21 @@ jQuery(function ($) {
 			// bind state from cookies to the UI
 			$('#form-runMax').val(data.runMax);
 			
-			$('input[type=checkbox][name="browserSets[]"]:checked').prop('checked', false).triggerHandler('click');
+			$('input[type=checkbox][name="browserSets[]"]:checked').prop('checked', false).trigger('slideDetails');
 			for(var i=0;data.browserSets && i<data.browserSets.length;i++) {
 				browserSet = data.browserSets[i];
-				$('input[type=checkbox][name="browserSets[]"][value="'+browserSet+'"]').prop('checked', true).triggerHandler('click');
+				$('input[type=checkbox][name="browserSets[]"][value="'+browserSet+'"]').prop('checked', true).trigger('slideDetails');
 			}
 			
-			// run names are expected to be the same at all times therefore we can match on the actual value
+			$('input[type=checkbox].enableRun:checked').prop('checked', false).trigger('disableRelatedFields');
 			for(var i=0;data.runNames && i<data.runNames.length;i++) {
 				runName = data.runNames[i];
-				$('input[type=text][name="runNames[]"][value="' + runName + '"]').closest('fieldset').find('input[type=checkbox]').prop('checked', false).triggerHandler('click');
+				$('input[type=text][name="runNames[]"]')
+					.filter(function() { return $.trim(this.value) == $.trim(runName); })
+					.closest('fieldset')
+					.find('input[type=checkbox]')
+					.prop('checked', true)
+					.trigger('disableRelatedFields');
 			}
 		});
 		
