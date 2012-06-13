@@ -100,13 +100,13 @@ HTML;
 			<fieldset>
 				<legend>Runs <i class="icon-question-sign po" data-title="Runs" data-content='Each job consists of several runs. Every run has a name and a url to where that test suite can be ran. All the test suites should probably have the same common code base or some other grouping characteristic, where each run is part of the larger test suite. As example, for a QUnit test suite the <code>filter</code> url parameter can be used to only run one of the "modules" so every run would be the name of that module and the URL to the testsuite with <code>?filter=modulename</code> appended to it.'></i></legend>
 
-<label class="control-label" for="button-TickRuns">Ticked runs: &nbsp;</label>
+				<label class="control-label" for="button-TickRuns">Ticked runs: &nbsp;</label>
 
-<div class="btn-group" data-toggle="buttons-radio" id="button-TickRuns">
-	<button class="btn" type="button">all</button>
-	<button class="btn" type="button">none</button>
-	<button class="btn" type="button">same as last time</button>
-</div>
+				<div class="btn-group" data-toggle="buttons-radio" id="button-TickRuns">
+					<button class="btn all" type="button">all</button>
+					<button class="btn none" type="button">none</button>
+					<button class="btn same" type="button">same as last time</button>
+				</div>
 				<div id="runs-container" class="well">
 HTML;
 		if($runNames && count($runNames)>0) {

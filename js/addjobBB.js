@@ -62,21 +62,44 @@ jQuery(function ($) {
 	// setup all popovers
 	$('.po').popover();
 	
-	// setup remove run button
-	$('.removeRun').live('click', function() { 
-		$(this).parent().parent().remove();
-	});
-	
 	// show more form details on button click
 	$('#btnOtherInformation').click(function() {
 		$('#otherInformation').slideToggle();
 		$(this).hide();
 	});
 	
-	// disable run depending on checkbox state
-	$('.enableRun').live('click', function() {
-		$(this).closest('fieldset').find('input').not(this).toggleDisabled();	
-	});
+	(function setupRuns() {
+			
+		// disable run depending on checkbox state
+		$('.enableRun').live('click', function() {
+			$(this).closest('fieldset').find('input').not(this).toggleDisabled();	
+		});	
+
+		// setup remove run button
+		$('.removeRun').live('click', function() { 
+			$(this).parent().parent().remove();
+		});
+		
+		$('#button-TickRuns .all').click(function() {
+			$(this).closest('fieldset').find('input:checkbox').not(':checked').click();		
+		});
+		
+		$('#button-TickRuns .none').click(function() {
+			$(this).closest('fieldset').find('input:checkbox:checked').click();		
+		});
+		
+		$('#button-TickRuns .same').click(function() {
+			$(this).closest('fieldset').find('input:checkbox:checked').click();		
+		});
+		
+		// TODO: 
+		// - form submission - serialize to cookie
+		// - 'same as last time' clicked - load from cookie - fields:?
+		// - default selection to 'same as last time' if available, otherwise 'all'
+		
+		
+		
+	}) ();
 	
 	// setup header
 	(function setupHeader () {
@@ -99,6 +122,6 @@ jQuery(function ($) {
 			$formJobName.val($(this).val());		
 		});
 		
-	})();
+	}) ();
 	
 });
