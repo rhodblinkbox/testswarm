@@ -100,10 +100,14 @@ class UserPage extends Page {
 					'<div class="span4"><div class="well">'
 					. '<img class="pull-right" src="' . swarmpath( "img/{$diplayicon}.sm.png" ) . '" alt="">'
 					. '<strong class="label">' . htmlspecialchars( $label ) . '</strong>'
-					. '<p><small>Platform: ' . htmlspecialchars( $activeClient["uaBrowscap"]["Platform"] )
-					. '</small><br><small>Connected <span title="'
-					. htmlspecialchars( $activeClient["connectedISO"] ) . '" class="pretty">'
-					. htmlspecialchars( $activeClient["connectedLocalFormatted"] ) . '</span></small></p>'
+					. '<p>'
+					. '<small>Platform: ' . htmlspecialchars( $activeClient["uaBrowscap"]["Platform"] )
+					. '</small>'
+					. '<br>'
+					. '<small>Connected ' . self::getPrettyDateHtml( $activeClient, 'connected' ) . '</small>'
+					. '<br>'
+					. '<small>Last ping ' . self::getPrettyDateHtml( $activeClient, 'pinged' ) . '</small>'
+					. '</p>'
 					. '</div></div>';
 			}
 
