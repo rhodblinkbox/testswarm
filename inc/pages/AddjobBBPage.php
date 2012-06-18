@@ -1,7 +1,9 @@
 <?php
-/**
- * "Addjob" page.
+/** 
+ * "AddjobBB" page.
+ * File is copied from AddjobPage.php and modified.
  *
+ * @author Timo Tijhof, 2012
  * @author Maciej Borzecki 2012
  * @since 1.0.0
  * @package TestSwarm

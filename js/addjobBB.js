@@ -1,6 +1,8 @@
 /**
- * JavaScript file for the bb "addjob" page.
+ * JavaScript file for the "addjobbb" page.
+ * File is copied from addjob.js and modified.
  *
+ * @author Timo Tijhof, 2012
  * @author Maciej Borzecki, 2012
  * @since 1.0.0
  * @package TestSwarm
