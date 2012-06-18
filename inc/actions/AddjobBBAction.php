@@ -1,12 +1,14 @@
 <?php
 /**
- * "Addjob" action.
- * Addjob ignores the current session. Instead it uses tokens, which (although
- * all registered users have an auth token in the database), only trusted
- * users know their own token.
+ * "AddjobBB" action.
+ *
+ * AddjobBB uses the current session. Only logged in users can add jobs.
+ *
+ * File was copied from AddjobBBAction.php and modified.
  *
  * @author John Resig, 2008-2011
  * @author Timo Tijhof, 2012
+ * @author Maciej Borzecki, 2012
  * @since 0.1.0
  * @package TestSwarm
  */
@@ -16,7 +18,6 @@ class AddjobbbAction extends Action {
 	/**
 	 * @actionMethod POST: Required.
 	 * @actionParam authUsername string
-	 * @actionParam authToken string
 	 * @actionParam jobName string: May contain HTML.
 	 * @actionParam runMax int
 	 * @actionParam runNames array
@@ -33,8 +34,7 @@ class AddjobbbAction extends Action {
 			return;
 		}
 
-		$authUsername = $request->getVal( "authUsername" );
-		$authToken = $request->getVal( "authToken" );
+		$authUsername = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes" ? $request->getSessionData( "username" ) : "null";
 
 		$jobName = $request->getVal( "jobName" );
 		$runMax = $request->getInt( "runMax" );
@@ -42,7 +42,7 @@ class AddjobbbAction extends Action {
 		$runUrls = $request->getArray( "runUrls" );
 		$browserSets = $request->getArray( "browserSets" );
 
-		if ( !$authUsername || !$authToken || !$jobName
+		if ( !$authUsername || !$jobName
 			|| !$runNames || count( $runNames ) === 0
 			|| !$runUrls || count( $runUrls ) === 0
 			|| !$browserSets || count( $browserSets ) === 0
@@ -103,8 +103,7 @@ class AddjobbbAction extends Action {
 		*	FROM users
 		*	WHERE name = %s
 		*	AND   auth = %s;",
-		*	$authUsername,
-		*	$authToken
+		*	$authUsername
 		*));
 		*/
 		$authUserId = $db->getOne(str_queryf(

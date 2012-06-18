@@ -1,7 +1,9 @@
 <?php
-/**
- * "Addjob" page.
+/** 
+ * "AddjobBB" page.
+ * File is copied from AddjobPage.php and modified.
  *
+ * @author Timo Tijhof, 2012
  * @author Maciej Borzecki 2012
  * @since 1.0.0
  * @package TestSwarm
@@ -10,7 +12,7 @@
 class AddjobbbPage extends Page {
 
 	public function execute() {
-		$action = AddjobAction::newFromContext( $this->getContext() );
+		$action = AddjobBBAction::newFromContext( $this->getContext() );
 		$action->doAction();
 
 		$this->setAction( $action );
@@ -18,9 +20,15 @@ class AddjobbbPage extends Page {
 	}
 
 	protected function initContent() {
-		$request = $this->getContext()->getRequest();
-
+		$request = $this->getContext()->getRequest();	
+		
 		$this->setTitle( "Job name" );
+		
+		if ( $request->getSessionData( "auth" ) !== "yes" ) {
+			$html = html_tag( "div", array( "class" => "alert alert-error" ), "You must be authenticated in order to add a job." );
+			return $html;
+		};	
+		
 		$this->bodyScripts[] = swarmpath( "js/addjobBB.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-tooltip.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-popover.js" );
@@ -46,7 +54,7 @@ class AddjobbbPage extends Page {
 					. '</div>';
 			}
 		}
-
+		
 		$html .= $this->getAddjobFormHtml();
 
 		return $html;
@@ -55,15 +63,13 @@ class AddjobbbPage extends Page {
 	protected function getAddjobFormHtml() {
 		$conf = $this->getContext()->getConf();
 		$request = $this->getContext()->getRequest();
-
+		
 		$swarmUaIndex = BrowserInfo::getSwarmUAIndex();
 
 		$addjobPageUrl = htmlspecialchars( swarmpath( "addjobbb" ) );
-		$userName = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes"  ? htmlspecialchars( $request->getSessionData( "username" ) ) : "";
+		$userName = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes" ? htmlspecialchars( $request->getSessionData( "username" ) ) : "";
 
 		// fields to be taken from the querystring:
-		$userName = $request->getVal('authUsername') ?: $userName;
-		$authToken = $request->getVal('authToken') ?: 123; 
 		$jobName = $request->getVal('jobName');
 		$runMax = $request->getVal('runMax') ?: 3;
 		$runNames = $request->getArray('runNames');
@@ -126,13 +132,7 @@ HTML;
 					<div class="control-group">
 						<label class="control-label" for="form-authUsername">User name:</label>
 						<div class="controls">
-							<input type="text" name="authUsername" value="$userName" id="form-authUsername">
-						</div>
-					</div>
-					<div class="control-group">
-						<label class="control-label" for="form-authToken">Auth token:</label>
-						<div class="controls">
-							<input type="text" name="authToken" id="form-authToken" class="input-xlarge" value="$authToken">
+							<input type="text" value="$userName" id="form-authUsername" disabled="disabled">
 						</div>
 					</div>
 					<div class="control-group">
@@ -167,7 +167,7 @@ HTML;
 		
 		return <<<HTML
 				<fieldset>
-					<legend><span>Run $i</span>&nbsp;<i class="icon-remove-sign removeRun"></i></legend>
+					<legend><span>Run</span>&nbsp;<i class="icon-remove-sign removeRun"></i></legend>
 					<label class="checkbox">
 						<input type="checkbox" class="enableRun" $checked> Enable
 					</label>
