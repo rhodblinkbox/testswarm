@@ -2,10 +2,7 @@
 /**
  * "AddjobBB" action.
  *
- * TODO: make the page to work with current session/user instead of authentication s. 
- * Addjob ignores the current session. Instead it uses tokens, which (although
- * all registered users have an auth token in the database), only trusted
- * users know their own token.
+ * AddjobBB uses the current session. Only logged in users can add jobs.
  *
  * File was copied from AddjobBBAction.php and modified.
  *
