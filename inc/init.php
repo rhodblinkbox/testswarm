@@ -71,7 +71,7 @@ $swarmAutoLoadClasses = array(
 	'WebRequest' => 'inc/WebRequest.php',
 	# Actions
 	'AddjobAction' => 'inc/actions/AddjobAction.php',
-	'AddjobBBAction' => 'inc/actions/AddjobBBAction.php',
+	'AdddevboxjobAction' => 'inc/actions/AdddevboxjobAction.php',
 	'CleanupAction' => 'inc/actions/CleanupAction.php',
 	'GetrunAction' => 'inc/actions/GetrunAction.php',
 	'InfoAction' => 'inc/actions/InfoAction.php',
@@ -90,7 +90,7 @@ $swarmAutoLoadClasses = array(
 	'WiperunAction' => 'inc/actions/WiperunAction.php',
 	# Pages
 	'AddjobPage' => 'inc/pages/AddjobPage.php',
-	'AddjobbbPage' => 'inc/pages/AddjobBBPage.php',
+	'AdddevboxjobPage' => 'inc/pages/AdddevboxjobPage.php',
 	'ApiDebugPage' => 'inc/pages/ApiDebugPage.php',
 	'Error404Page' => 'inc/pages/Error404Page.php',
 	'Error500Page' => 'inc/pages/Error500Page.php',

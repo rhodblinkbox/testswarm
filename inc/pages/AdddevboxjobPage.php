@@ -1,6 +1,6 @@
 <?php
 /** 
- * "AddjobBB" page.
+ * "Adddevboxjob" page.
  * File is copied from AddjobPage.php and modified.
  *
  * @author Timo Tijhof, 2012
@@ -9,10 +9,10 @@
  * @package TestSwarm
  */
 
-class AddjobbbPage extends Page {
+class AdddevboxjobPage extends Page {
 
 	public function execute() {
-		$action = AddjobBBAction::newFromContext( $this->getContext() );
+		$action = AdddevboxjobAction::newFromContext( $this->getContext() );
 		$action->doAction();
 
 		$this->setAction( $action );
@@ -29,12 +29,12 @@ class AddjobbbPage extends Page {
 			return $html;
 		};	
 		
-		$this->bodyScripts[] = swarmpath( "js/addjobBB.js" );
+		$this->bodyScripts[] = swarmpath( "js/AddDevBoxJob.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-tooltip.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-popover.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-button.js" );
 		$this->bodyScripts[] = swarmpath( "js/json2.js" );
-		$this->styleSheets[] = swarmpath( "css/addjobbb.css" );
+		$this->styleSheets[] = swarmpath( "css/AddDevBoxJob.css" );
 		
 		$html = "";
 
@@ -66,7 +66,7 @@ class AddjobbbPage extends Page {
 		
 		$swarmUaIndex = BrowserInfo::getSwarmUAIndex();
 
-		$addjobPageUrl = htmlspecialchars( swarmpath( "addjobbb" ) );
+		$addjobPageUrl = htmlspecialchars( swarmpath( "adddevboxjob" ) );
 		$userName = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes" ? htmlspecialchars( $request->getSessionData( "username" ) ) : "";
 
 		// fields to be taken from the querystring:

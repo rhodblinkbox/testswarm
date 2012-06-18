@@ -1,10 +1,10 @@
 <?php
 /**
- * "AddjobBB" action.
+ * "Adddevboxjob" action.
  *
- * AddjobBB uses the current session. Only logged in users can add jobs.
+ * Adddevboxjob uses the current session. Only logged in users can add jobs.
  *
- * File was copied from AddjobBBAction.php and modified.
+ * File was copied from AddjobAction.php and modified.
  *
  * @author John Resig, 2008-2011
  * @author Timo Tijhof, 2012
@@ -13,7 +13,7 @@
  * @package TestSwarm
  */
 
-class AddjobbbAction extends Action {
+class AdddevboxjobAction extends Action {
 
 	/**
 	 * @actionMethod POST: Required.
