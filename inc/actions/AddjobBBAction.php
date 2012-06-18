@@ -1,6 +1,8 @@
 <?php
 /**
  * "AddjobBB" action.
+ *
+ * TODO: make the page to work with current session/user instead of authentication s. 
  * Addjob ignores the current session. Instead it uses tokens, which (although
  * all registered users have an auth token in the database), only trusted
  * users know their own token.
@@ -19,7 +21,6 @@ class AddjobbbAction extends Action {
 	/**
 	 * @actionMethod POST: Required.
 	 * @actionParam authUsername string
-	 * @actionParam authToken string
 	 * @actionParam jobName string: May contain HTML.
 	 * @actionParam runMax int
 	 * @actionParam runNames array
@@ -37,7 +38,6 @@ class AddjobbbAction extends Action {
 		}
 
 		$authUsername = $request->getVal( "authUsername" );
-		$authToken = $request->getVal( "authToken" );
 
 		$jobName = $request->getVal( "jobName" );
 		$runMax = $request->getInt( "runMax" );
@@ -45,7 +45,7 @@ class AddjobbbAction extends Action {
 		$runUrls = $request->getArray( "runUrls" );
 		$browserSets = $request->getArray( "browserSets" );
 
-		if ( !$authUsername || !$authToken || !$jobName
+		if ( !$authUsername || !$jobName
 			|| !$runNames || count( $runNames ) === 0
 			|| !$runUrls || count( $runUrls ) === 0
 			|| !$browserSets || count( $browserSets ) === 0
@@ -106,8 +106,7 @@ class AddjobbbAction extends Action {
 		*	FROM users
 		*	WHERE name = %s
 		*	AND   auth = %s;",
-		*	$authUsername,
-		*	$authToken
+		*	$authUsername
 		*));
 		*/
 		$authUserId = $db->getOne(str_queryf(

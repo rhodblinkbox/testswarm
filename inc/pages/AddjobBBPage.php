@@ -12,7 +12,7 @@
 class AddjobbbPage extends Page {
 
 	public function execute() {
-		$action = AddjobAction::newFromContext( $this->getContext() );
+		$action = AddjobBBAction::newFromContext( $this->getContext() );
 		$action->doAction();
 
 		$this->setAction( $action );
@@ -65,7 +65,6 @@ class AddjobbbPage extends Page {
 
 		// fields to be taken from the querystring:
 		$userName = $request->getVal('authUsername') ?: $userName;
-		$authToken = $request->getVal('authToken') ?: 123; 
 		$jobName = $request->getVal('jobName');
 		$runMax = $request->getVal('runMax') ?: 3;
 		$runNames = $request->getArray('runNames');
@@ -129,12 +128,6 @@ HTML;
 						<label class="control-label" for="form-authUsername">User name:</label>
 						<div class="controls">
 							<input type="text" name="authUsername" value="$userName" id="form-authUsername">
-						</div>
-					</div>
-					<div class="control-group">
-						<label class="control-label" for="form-authToken">Auth token:</label>
-						<div class="controls">
-							<input type="text" name="authToken" id="form-authToken" class="input-xlarge" value="$authToken">
 						</div>
 					</div>
 					<div class="control-group">
