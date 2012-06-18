@@ -167,7 +167,7 @@ HTML;
 		
 		return <<<HTML
 				<fieldset>
-					<legend><span>Run $i</span>&nbsp;<i class="icon-remove-sign removeRun"></i></legend>
+					<legend><span>Run</span>&nbsp;<i class="icon-remove-sign removeRun"></i></legend>
 					<label class="checkbox">
 						<input type="checkbox" class="enableRun" $checked> Enable
 					</label>
