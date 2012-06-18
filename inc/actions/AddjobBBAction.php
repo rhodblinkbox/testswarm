@@ -37,7 +37,7 @@ class AddjobbbAction extends Action {
 			return;
 		}
 
-		$authUsername = $request->getVal( "authUsername" );
+		$authUsername = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes" ? $request->getSessionData( "username" ) : "null";
 
 		$jobName = $request->getVal( "jobName" );
 		$runMax = $request->getInt( "runMax" );

@@ -20,9 +20,15 @@ class AddjobbbPage extends Page {
 	}
 
 	protected function initContent() {
-		$request = $this->getContext()->getRequest();
-
+		$request = $this->getContext()->getRequest();	
+		
 		$this->setTitle( "Job name" );
+		
+		if ( $request->getSessionData( "auth" ) !== "yes" ) {
+			$html = html_tag( "div", array( "class" => "alert alert-error" ), "You must be authenticated in order to add a job." );
+			return $html;
+		};	
+		
 		$this->bodyScripts[] = swarmpath( "js/addjobBB.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-tooltip.js" );
 		$this->bodyScripts[] = swarmpath( "js/bootstrap-popover.js" );
@@ -48,7 +54,7 @@ class AddjobbbPage extends Page {
 					. '</div>';
 			}
 		}
-
+		
 		$html .= $this->getAddjobFormHtml();
 
 		return $html;
@@ -57,14 +63,13 @@ class AddjobbbPage extends Page {
 	protected function getAddjobFormHtml() {
 		$conf = $this->getContext()->getConf();
 		$request = $this->getContext()->getRequest();
-
+		
 		$swarmUaIndex = BrowserInfo::getSwarmUAIndex();
 
 		$addjobPageUrl = htmlspecialchars( swarmpath( "addjobbb" ) );
-		$userName = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes"  ? htmlspecialchars( $request->getSessionData( "username" ) ) : "";
+		$userName = $request->getSessionData( "username" ) && $request->getSessionData( "auth" ) == "yes" ? htmlspecialchars( $request->getSessionData( "username" ) ) : "";
 
 		// fields to be taken from the querystring:
-		$userName = $request->getVal('authUsername') ?: $userName;
 		$jobName = $request->getVal('jobName');
 		$runMax = $request->getVal('runMax') ?: 3;
 		$runNames = $request->getArray('runNames');
@@ -127,7 +132,7 @@ HTML;
 					<div class="control-group">
 						<label class="control-label" for="form-authUsername">User name:</label>
 						<div class="controls">
-							<input type="text" name="authUsername" value="$userName" id="form-authUsername">
+							<input type="text" value="$userName" id="form-authUsername" disabled="disabled">
 						</div>
 					</div>
 					<div class="control-group">
