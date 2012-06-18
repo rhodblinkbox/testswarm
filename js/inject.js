@@ -123,7 +123,7 @@
 	}	
 
 	function submit( params ) {
-		log('Submitting form...');	
+		log('submitting form...');	
 
 		var form, i, input, key, paramItems, parts, query;
 
@@ -321,24 +321,15 @@
 		// http://docs.angularjs.org/guide/dev_guide.e2e-testing
 		"AngularJS": {
 			detect: function() {
-				log('Detecting AngularJS framework...');
+				log('detecting AngularJS framework');
 				var isDetected = typeof angular !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
-				log('AngularJS framework detected: ' + isDetected);
+				log('AngularkJS framework detected: ' + isDetected);
 				return isDetected;
 			},
 			install: function() {
-				log('Installing AngularJS framework support...');
+				log('installing AngularJS framework support');
 		
 				window.TestSwarm.serialize = function () {
-					
-					// 'expand' nodes for each step
-					var elements = document.getElementsByClassName('test-actions'); 
-					if(elements) {
-						for(var i = 0; i < elements.length; i++ ) {
-							elements[i].style.display = 'block';
-						}
-					}
-
 					// take only the #wrapper and #html as a test result
 					remove('json');
 					remove('xml');

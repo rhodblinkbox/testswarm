@@ -15,8 +15,24 @@
 
 	function log( htmlMsg ) {
 		$( '#history' ).prepend( '<li><strong>' +
-			new Date().toString().replace( /^\w+ /, '' ).replace( /:[^:]+$/, '' ) +
-			':</strong> ' + htmlMsg + '</li>'
+			( function getDate() {
+			
+				function pad(num, size) {
+					var s = num+"";
+					while (s.length < size) s = "0" + s;
+					return s;
+				}
+			
+				var now = new Date();
+				
+				return 	now.getFullYear() + '/' + 
+						pad( now.getMonth() + 1, 2 ) + '/' + 
+						pad( now.getDate(), 2 ) + ' ' + 
+						pad( now.getHours(), 2 ) + ':' + 
+						pad( now.getMinutes(), 2 ) + ':' + 
+						pad( now.getSeconds(), 2 ) + ": ";
+			} ) () +
+			'</strong> ' + htmlMsg + '</li>'
 		);
 
 		msg( htmlMsg );
