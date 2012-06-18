@@ -10,7 +10,6 @@
  * @since 0.1.0
  * @package TestSwarm
  */
-
 class AddjobAction extends Action {
 
 	/**
@@ -52,7 +51,7 @@ class AddjobAction extends Action {
 		}
 
 		if ( $runMax < 1 || $runMax > 99 ) {
-			$this->setError( "invalid-input", "runMax must be an integer between 1 and 99." );
+			$this->setError( "invalid-input", "runMax must be a number between 1 and 99." );
 			return;
 		}
 
@@ -119,6 +118,31 @@ class AddjobAction extends Action {
 			return;
 		}
 
+		// Generate a list of user agent IDs based on the selected browser sets
+		$browserSetsCnt = count( $browserSets );
+		$browserSets = array_unique( $browserSets );
+		if ( $browserSetsCnt != count( $browserSets ) ) {
+			$this->setError( "invalid-input", "Duplicate entries in browserSets parameter." );
+			return;
+		}
+
+		$swarmUaIndex = BrowserInfo::getSwarmUAIndex();
+		$uaIDs = array();
+
+		foreach ( $browserSets as $browserSet ) {
+			if ( !isset( $conf->browserSets->$browserSet ) ) {
+				$this->setError( "invalid-input", "Unknown browser set: $browserSet." );
+				return;
+			}
+			// Merge the arrays, and re-index with unique (also prevents duplicate entries)
+			$uaIDs = array_unique( array_merge( $uaIDs, $conf->browserSets->$browserSet ) );
+		}
+
+		if ( !count( $uaIDs ) ) {
+			$this->setError( "data-corrupt", "No user agents matched the generated browserset filter." );
+			return;
+		}
+
 		// Verify job name maxlength (otherwise MySQL will crop it, which might
 		// result in incomplete html, screwing up the JobPage).
 		if ( strlen( $jobName ) > 255 ) {
@@ -137,30 +161,6 @@ class AddjobAction extends Action {
 		$newJobId = $db->getInsertId();
 		if ( !$isInserted || !$newJobId ) {
 			$this->setError( "internal-error", "Insertion of job into database failed." );
-			return;
-		}
-
-		// Generate a list of user agent IDs based on the selected browser sets
-		$browserSetsCnt = count( $browserSets );
-		$browserSets = array_unique( $browserSets );
-		if ( $browserSetsCnt != count( $browserSets ) ) {
-			$this->setError( "invalid-input", "Duplicate entries in browserSets parameter." );
-			return;
-		}
-
-		$swarmUaIndex = BrowserInfo::getSwarmUAIndex();
-		$uaIDs = array();
-
-		foreach ( $browserSets as $browserSet ) {
-			if ( !isset( $conf->browserSets->$browserSet ) ) {
-				$this->setError( "invalid-input", "Unknown browser set: $browserSet." );
-			}
-			// Merge the arrays, and re-index with unique (also prevents duplicate entries)
-			$uaIDs = array_unique( array_merge( $uaIDs, $conf->browserSets->$browserSet ) );
-		}
-
-		if ( !count( $uaIDs ) ) {
-			$this->setError( "data-corrupt", "No user agents matched the generated browserset filter." );
 			return;
 		}
 
