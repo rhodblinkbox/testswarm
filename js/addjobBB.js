@@ -163,6 +163,7 @@ jQuery(function ($) {
 		
 		$('input:checkbox.enableRun').live('click', function() {
 			$(this).trigger('disableRelatedFields');
+			$('#button-TickRuns button.active').removeClass('active');
 		});	
 
 		// setup remove run button
