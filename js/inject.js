@@ -130,7 +130,7 @@
 		if(document.body && !document.getElementById('logger'))
 		{
 			var logHeader = document.createElement( 'h1' );
-			logHeader.innerText = "Testswarm execution logs:";
+			logHeader.innerText = "Run logs:";
 			document.body.appendChild( logHeader );
 			document.body.appendChild( logger );
 		}
@@ -139,7 +139,7 @@
 	}	
 
 	function submit( params ) {
-		log('submitting form...');	
+		log('Submitting runner results...');	
 
 		var form, i, input, key, paramItems, parts, query;
 
@@ -162,6 +162,13 @@
 			params.action = 'saverun';
 		}
 
+		// Last chance to add something to the runner logs. Runner html gets serialized here.
+		if ( doPost ) {
+			log('Submitting results using postMessage...');
+		} else {
+			log('Submitting results by building and submitting html form...');			
+		}
+		
 		if ( !params.report_html ) {
 			params.report_html = window.TestSwarm.serialize();
 		}
@@ -180,10 +187,10 @@
 
 			if ( !DEBUG ) {
 				window.parent.postMessage( query, '*' );
+				log('Message posted');
 			}
 
 		} else {
-			log('building form');
 			form = document.createElement( 'form' );
 			form.action = url;
 			form.method = 'POST';
@@ -205,11 +212,11 @@
 					submit( params );
 				}, submitTimeout * 1000);
 
-				log('adding for to document');
+				log('Adding form to document');
 				document.body.appendChild( form );
-				log('submit form');				
+				log('Submit form');				
 				form.submit();
-				log('form submitted!');				
+				log('Form submitted!');				
 			}
 		}
 	}
@@ -261,6 +268,7 @@
 			}
 
 			curHeartbeat = setTimeout(function () {
+				log('Heartbeat caused results submission...');
 				submit({ fail: -1, total: -1 });
 			}, beatRate * 1000);
 		},
@@ -337,13 +345,13 @@
 		// http://docs.angularjs.org/guide/dev_guide.e2e-testing
 		"AngularJS": {
 			detect: function() {
-				log('detecting AngularJS framework');
+				log('Detecting AngularJS framework...');
 				var isDetected = typeof angular !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
-				log('AngularkJS framework detected: ' + isDetected);
+				log('AngularJS framework detected: ' + isDetected);
 				return isDetected;
 			},
 			install: function() {
-				log('installing AngularJS framework support');
+				log('Installing AngularJS framework support...');
 		
 				window.TestSwarm.serialize = function () {
 					// take only the #wrapper and #html as a test result
