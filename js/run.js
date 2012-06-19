@@ -248,6 +248,12 @@
 	// it can call this from within the frame
 	// as window.parent.SWARM.runDone();
 	SWARM.runDone = function () {
+		log( 'run.js: runDone(): reloading page...' );
+		location.reload();
+		return;
+		
+		// code below won't get executed as we are reloading the test runner page
+		
 		log( 'run.js: runDone(): 1: iframe count: ' + $('iframe').length );
 		cancelTest();
 		log( 'run.js: runDone(): 2: iframe count: ' + $('iframe').length );
