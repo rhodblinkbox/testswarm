@@ -354,6 +354,15 @@
 				log('Installing AngularJS framework support...');
 		
 				window.TestSwarm.serialize = function () {
+					
+					// 'expand' nodes for each step
+					var elements = document.getElementsByClassName('test-actions'); 
+					if(elements) {
+						for(var i = 0; i < elements.length; i++ ) {
+							elements[i].style.display = 'block';
+						}
+					}
+
 					// take only the #wrapper and #html as a test result
 					remove('json');
 					remove('xml');
@@ -375,7 +384,7 @@
 					};
 					
 					resetResults();
-							
+
 					model.on('SpecBegin', function(spec) {
 						log('Spec Begin: ' + spec.name);
 						angular.testSwarmResults.total++;
@@ -401,6 +410,31 @@
 						submit(angular.testSwarmResults);
 						resetResults();
 					});
+					
+					model.on('SpecError', function(spec, error) {					
+						log('SpecError: ' + spec.name + ', ' + error.name);
+					});
+
+					model.on('StepBegin', function(spec, step) {					
+						log('StepBegin: ' + spec.name + ', ' + step.name);
+					});
+
+					model.on('StepEnd', function(spec, step) {					
+						log('StepEnd: ' + spec.name + ', ' + step.name);
+					});
+
+					model.on('StepFailure', function(spec, step, error) {					
+						log('StepFailure: ' + spec.name + ', ' + step.name + ', ' + error.name);
+					});
+
+					model.on('StepError', function(spec, step, error) {					
+						log('StepError: ' + spec.name + ', ' + step.name + ', ' + error.name);
+					});
+					
+					model.on('RunnerError', function(error) {					
+						log('RunnerError: ' + error.name);
+					});
+
 				});
 				
 				log('AngularJS injected!');	
