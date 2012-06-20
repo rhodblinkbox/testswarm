@@ -18,9 +18,10 @@ class Client {
 	protected $userRow;
 
 	/**
-	 * @param $clientId int
+	 * @param $clientId int,
+	 * @param $checkIP boolean: Validate ip address against database row
 	 */
-	protected function loadFromID( $clientID ) {
+	protected function loadFromID( $clientID, $checkIP ) {
 		$db = $this->context->getDB();
 		$browserInfo = $this->context->getBrowserInfo();
 
@@ -46,7 +47,12 @@ class Client {
 		if ( $clientRow->useragent_id != $browserInfo->getSwarmUaID() ) {
 			throw new SwarmException( "Your user agent does not match this client's registered user agent." );
 		}
-
+		
+		// Make sure that ip address for this request matches registered ip address in clients table.
+		if ( $checkIP && $clientRow->ip !== $this->context->getRequest()->getIP() ) {
+			throw new SwarmException( "Your IP address does not match this client's registered IP address." );
+		}
+		
 		// Save a query by not re-selecting the row, assume success and
 		// simulate the same update on our object
 		$clientRow->updated = swarmdb_dateformat( SWARM_NOW );
@@ -147,16 +153,17 @@ class Client {
 	 * @param $context TestSwarmContext
 	 * @param $runToken string
 	 * @param $clientID int: [optional] Instead of creating a new client entry,
+	 * @param $checkIP boolean: [optional] Validate ip address against database row,	 
 	 * create an instance for an existing client entry.
 	 */
-	public static function newFromContext( TestSwarmContext $context, $runToken, $clientID = null ) {
+	public static function newFromContext( TestSwarmContext $context, $runToken, $clientID = null, $checkIP = false ) {
 		self::validateRunToken( $context, $runToken );
 
 		$client = new self();
 		$client->context = $context;
 
 		if ( $clientID !== null ) {
-			$client->loadFromID( $clientID );
+			$client->loadFromID( $clientID, $checkIP );
 		} else {
 			$client->loadNew();
 		}

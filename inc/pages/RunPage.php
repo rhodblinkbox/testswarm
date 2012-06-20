@@ -27,10 +27,27 @@ class RunPage extends Page {
 		$this->setTitle( "Test runner" );
 		$this->bodyScripts[] = swarmpath( "js/run.js?" . time() );
 
-		$client = Client::newFromContext( $this->getContext(), $runToken );
+		$client = null;
 
+		// Try to get the client id from the cookie.
+		$clientId = $this->getClientIdFromCookie();		
+		if ( isset( $clientId ) ) {
+			// If client id is present then try to reuse it. 
+			// This might throw an exception if client id doesn't exist on the database, the user agent doesn't match or the ip address doesn't match the database record.
+			try {
+				$client = Client::newFromContext( $this->getContext(), $runToken, $clientId, true );		
+			} catch ( Exception $e ) { }
+		}
+		
+		// $client is not set if restoring client id failed or cookie is not present.
+		if( !isset( $client ) ) { 
+			$client = Client::newFromContext( $this->getContext(), $runToken );
+			$clientId = $client->getClientRow()->id;
+			$this->saveClientIdInCookie( $clientId );
+		}		
+		
 		$html = '<script>'
-			. 'SWARM.client_id = ' . json_encode( $client->getClientRow()->id ) . ';'
+			. 'SWARM.client_id = ' . json_encode( $clientId ) . ';'
 			. 'SWARM.run_token = ' . json_encode( $runToken ) . ';'
 			. '</script>';
 
@@ -57,5 +74,19 @@ class RunPage extends Page {
 			. '<div id="iframes"></div>';
 
 		return $html;
+	}
+	
+	private function saveClientIdInCookie( $clientId ) {
+		$expire = time() + 3600 * 24 * 30 * 12;
+		setcookie( 'clientId', $clientId, $expire );
+	}
+	
+	private function getClientIdFromCookie() {
+		if( isset( $_COOKIE['clientId'] ) ) {			
+			try {
+				return intval( $_COOKIE['clientId'] );
+			} catch ( Exception $e ) { }		
+		}
+		return null;
 	}
 }
