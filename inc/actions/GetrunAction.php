@@ -51,11 +51,9 @@ class GetrunAction extends Action {
 				run_useragent
 			WHERE useragent_id = %s
 			AND   status = 0
-			AND NOT EXISTS (SELECT 1 FROM runresults WHERE runresults.run_id = run_useragent.run_id AND runresults.client_id = %u)
 			ORDER BY run_id DESC
 			LIMIT 1;',
-			$browserInfo->getSwarmUaID(),
-			$clientID
+			$browserInfo->getSwarmUaID()
 		));
 
 		$runInfo = false;

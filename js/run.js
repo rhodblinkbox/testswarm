@@ -15,8 +15,24 @@
 
 	function log( htmlMsg ) {
 		$( '#history' ).prepend( '<li><strong>' +
-			new Date().toString().replace( /^\w+ /, '' ).replace( /:[^:]+$/, '' ) +
-			':</strong> ' + htmlMsg + '</li>'
+			( function getDate() {
+			
+				function pad(num, size) {
+					var s = num+"";
+					while (s.length < size) s = "0" + s;
+					return s;
+				}
+			
+				var now = new Date();
+				
+				return 	now.getFullYear() + '/' + 
+						pad( now.getMonth() + 1, 2 ) + '/' + 
+						pad( now.getDate(), 2 ) + ' ' + 
+						pad( now.getHours(), 2 ) + ':' + 
+						pad( now.getMinutes(), 2 ) + ':' + 
+						pad( now.getSeconds(), 2 ) + ": ";
+			} ) () +
+			'</strong> ' + htmlMsg + '</li>'
 		);
 
 		msg( htmlMsg );
@@ -103,6 +119,7 @@
 	}
 
 	function testTimedout( runInfo ) {
+		log('run.js: testTimedout(): hello');
 		cancelTest();
 		retrySend(
 			{
@@ -119,12 +136,15 @@
 				results_store_token: runInfo.resultsStoreToken
 			},
 			function () {
+				log('run.js: testTimedout(): retry');
 				testTimedout( runInfo );
 			},
 			function ( data ) {
 				if ( data.saverun === 'ok' ) {
+					log('run.js: testTimedout(): ok, SWARM.runDone()');
 					SWARM.runDone();
 				} else {
+					log('run.js: testTimedout(): ok, getTests()');
 					getTests();
 				}
 			}
@@ -180,6 +200,13 @@
 
 				$( '#iframes' ).append( iframe );
 
+				var iframes = $('iframe');
+				log('run.js: runTests(): iframes count: ' + iframes.length);
+				if( iframes.length == 1 ) {
+					var iframe = iframes[0];
+					log('run.js: runTests(): iframe[0].src=' + iframe.src);					
+				}
+
 				// Timeout after a period of time
 				testTimeout = setTimeout( function () {
 					testTimedout( runInfo );
@@ -221,8 +248,17 @@
 	// it can call this from within the frame
 	// as window.parent.SWARM.runDone();
 	SWARM.runDone = function () {
+		log( 'run.js: runDone(): reloading page...' );
+		location.reload();
+		return;
+		
+		// code below won't get executed as we are reloading the test runner page
+		
+		log( 'run.js: runDone(): 1: iframe count: ' + $('iframe').length );
 		cancelTest();
+		log( 'run.js: runDone(): 2: iframe count: ' + $('iframe').length );
 		runTests({ timeoutMsg: 'Cooling down.' });
+		log( 'run.js: runDone(): 3: iframe count: ' + $('iframe').length );		
 	};
 
 	function handleMessage(e) {
