@@ -82,7 +82,7 @@ class ResultPage extends Page {
 				. html_tag( 'a', array( 'href' => $data['client']['userUrl'] ), $data['client']['userName'] )
 				. ' / Client #' . htmlspecialchars( $data['resultInfo']['clientID'] )
 				. ' / '
-				. html_tag( 'a', array( 'href' => 'http://bay/mediawiki/index.php?search=' . htmlspecialchars( $data['client']['userAgent'] ) ), 'search for this device on blinkbox wiki' )
+				. html_tag( 'a', array( 'target' => '_blank', 'href' => 'http://bay.blinkbox.local/mediawiki/index.php?profile=default&search=' . htmlspecialchars( $data['client']['userAgent'] ) ), 'search for this device on blinkbox wiki' )
 			. '</td></tr>'
 			. '<tr><th>User-Agent</th><td>'
 				. '<code>' . htmlspecialchars( $data['client']['uaID'] ) . '</code><br/>'
