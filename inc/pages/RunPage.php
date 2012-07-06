@@ -25,6 +25,7 @@ class RunPage extends Page {
 		}
 
 		$this->setTitle( "Test runner" );
+		$this->displayPageTitle = false;
 		$this->bodyScripts[] = swarmpath( "js/run.js?" . time() );
 
 		$client = null;
