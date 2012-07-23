@@ -25,6 +25,7 @@ class RunPage extends Page {
 		}
 
 		$this->setTitle( "Test runner" );
+		$this->displayPageTitle = false;
 		$this->bodyScripts[] = swarmpath( "js/run.js?" . time() );
 
 		$client = null;
@@ -67,11 +68,11 @@ class RunPage extends Page {
 					. '<p><strong>Status:</strong> <span id="msg"></span></p>'
 				. '</div>'
 			. '</div>'
+			. '<div id="iframes"></div>'
 			. '<div class="well">'
 				. '<h3>History</h3>'
 				. '<ul id="history"></ul>'
-			. '</div>'
-			. '<div id="iframes"></div>';
+			. '</div>';
 
 		return $html;
 	}

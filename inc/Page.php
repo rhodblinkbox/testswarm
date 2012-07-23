@@ -41,7 +41,8 @@ abstract class Page {
 	protected $rawDisplayTitle; // optional, fallsback to title + subtitle
 	protected $subTitle;
 	protected $content;
-
+	protected $displayPageTitle = true;
+	
 	/**
 	 * The execution method is where a Page invokes the main
 	 * action logic. This logic should be handled by an Action class
@@ -271,10 +272,18 @@ foreach ( $projects as $project ) {
 	</div>
 
 	<div class="container">
+<?php
+	if ( $this->displayPageTitle ) {
+?>
 		<div class="hero-unit">
 			<h1><?php echo $displayTitleHtml; ?></h1>
 		</div>
 <?php
+	} else {
+?>
+		<div class="hero-unit"></div>
+<?php
+	}
 	echo $this->getContent();
 ?>
 
