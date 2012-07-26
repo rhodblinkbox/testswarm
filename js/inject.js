@@ -116,7 +116,9 @@
 		var li = document.createElement( "li" );
 		li.appendChild(strong);
 		li.appendChild(span);
-		getLogger().appendChild(li);
+		//getLogger().appendChild(li);
+		var ul = getLogger();
+		ul.insertBefore(li, ul.childNodes[0]);
 	}
 	
 	var logger = null;
