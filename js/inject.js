@@ -110,13 +110,16 @@
 					pad( now.getDate(), 2 ) + ' ' + 
 					pad( now.getHours(), 2 ) + ':' + 
 					pad( now.getMinutes(), 2 ) + ':' + 
-					pad( now.getSeconds(), 2 ) + ": ";
+					pad( now.getSeconds(), 2 ) + '.' +
+					pad( now.getMilliseconds(), 4 ) + ': ';
 		} ) ();
 		
 		var li = document.createElement( "li" );
 		li.appendChild(strong);
 		li.appendChild(span);
-		getLogger().appendChild(li);
+		//getLogger().appendChild(li);
+		var ul = getLogger();
+		ul.insertBefore(li, ul.childNodes[0]);
 	}
 	
 	var logger = null;
