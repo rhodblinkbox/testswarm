@@ -134,8 +134,16 @@
 		{
 			var logHeader = document.createElement( 'h1' );
 			logHeader.innerText = "Run logs:";
-			document.body.appendChild( logHeader );
-			document.body.appendChild( logger );
+				
+			var logFirst = /runnermode\=logfirst/i.test(location.search);
+			if(logFirst) {
+				var firstElement = document.body.childNodes[0];
+				document.body.insertBefore(logger, firstElement);
+				document.body.insertBefore(logHeader, logger);				
+			} else {
+				document.body.appendChild( logHeader );
+				document.body.appendChild( logger );
+			}
 		}
 	
 		return logger;		
