@@ -42,6 +42,8 @@ abstract class Page {
 	protected $subTitle;
 	protected $content;
 	protected $displayPageTitle = true;
+	protected $displayNavBar = true;
+	protected $useContainerCssClass = true;
 	
 	/**
 	 * The execution method is where a Page invokes the main
@@ -219,6 +221,9 @@ abstract class Page {
 ?>
 </head>
 <body>
+<?php
+	if ( $this->displayNavBar ) {
+?>	
 	<div class="navbar navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container">
@@ -270,20 +275,24 @@ foreach ( $projects as $project ) {
 			</div>
 		</div>
 	</div>
-
+<?php
+}
+if ( $this->useContainerCssClass ) {
+?>
 	<div class="container">
 <?php
+} else {
+?>
+	<div>
+<?php
+}
 	if ( $this->displayPageTitle ) {
 ?>
 		<div class="hero-unit">
 			<h1><?php echo $displayTitleHtml; ?></h1>
 		</div>
 <?php
-	} else {
-?>
-		<div class="hero-unit"></div>
-<?php
-	}
+	} 
 	echo $this->getContent();
 ?>
 
