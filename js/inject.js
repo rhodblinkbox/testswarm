@@ -140,15 +140,7 @@
 			loggerWrapper.appendChild(logHeader);
 			
 			loggerWrapper.appendChild(logger);			
-				
-			var logFirst = /runnermode\=logfirst/i.test(location.search);
-			if(logFirst) {
-				var firstElement = document.body.childNodes[0];
-				document.body.insertBefore(loggerWrapper, firstElement);	
-			} else {
-				document.body.appendChild( loggerWrapper );
-			}
-			log('logFirst:' + logFirst);
+			document.body.appendChild( loggerWrapper );
 		}
 	
 		return logger;		
