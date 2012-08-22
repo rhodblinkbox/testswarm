@@ -91,15 +91,15 @@
 
 	function log(message)
 	{
-		var span = document.createElement( "span" );
+		var span = document.createElement( 'span' );
 		span.innerText = message;
 		
-		var strong = document.createElement( "strong" );
+		var strong = document.createElement( 'strong' );
 		strong.innerText = ( function getDate() {
 		
 			function pad(num, size) {
-				var s = num+"";
-				while (s.length < size) s = "0" + s;
+				var s = num+'';
+				while (s.length < size) s = '0' + s;
 				return s;
 			}
 		
@@ -114,7 +114,7 @@
 					pad( now.getMilliseconds(), 4 ) + ': ';
 		} ) ();
 		
-		var li = document.createElement( "li" );
+		var li = document.createElement( 'li' );
 		li.appendChild(strong);
 		li.appendChild(span);
 		//getLogger().appendChild(li);
@@ -122,29 +122,28 @@
 		ul.insertBefore(li, ul.childNodes[0]);
 	}
 	
+	// keep reference to logger. logger needs to work before it gets added to DOM.
 	var logger = null;
 	function getLogger()
 	{
 		if(!logger) {
-			logger = document.createElement( "ul" );
-			logger.id = "logger";		
+			// create logger if null;
+			logger = document.createElement( 'ul' );
+			logger.id = 'logger';		
 		}
 		
+		// add logger to DOM
 		if(document.body && !document.getElementById('logger'))
 		{
+			var loggerWrapper = document.createElement( 'div' );
+			loggerWrapper.id = 'loggerWrapper';
+			
 			var logHeader = document.createElement( 'h1' );
-			logHeader.innerText = "Run logs:";
-				
-			var logFirst = /runnermode\=logfirst/i.test(location.search);
-			if(logFirst) {
-				var firstElement = document.body.childNodes[0];
-				document.body.insertBefore(logger, firstElement);
-				document.body.insertBefore(logHeader, logger);				
-			} else {
-				document.body.appendChild( logHeader );
-				document.body.appendChild( logger );
-			}
-			log('logFirst:' + logFirst);
+			logHeader.innerText = 'Run logs:';
+			loggerWrapper.appendChild( logHeader );
+			
+			loggerWrapper.appendChild( logger );
+			document.body.appendChild( loggerWrapper );
 		}
 	
 		return logger;		
@@ -290,9 +289,9 @@
 	};
 
 	testFrameworks = {
-		"Jasmine": {
+		'Jasmine': {
 			detect: function() {
-				return typeof jasmine !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+				return typeof jasmine !== 'undefined' && typeof describe !== 'undefined' && typeof it !== 'undefined';
 			},
 			install: function() {
 				log('installing Jasmine framework support');
@@ -355,10 +354,10 @@
 		
 		// AngularJS
 		// http://docs.angularjs.org/guide/dev_guide.e2e-testing
-		"AngularJS": {
+		'AngularJS': {
 			detect: function() {
 				log('Detecting AngularJS framework...');
-				var isDetected = typeof angular !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+				var isDetected = typeof angular !== 'undefined' && typeof describe !== 'undefined' && typeof it !== 'undefined';
 				log('AngularJS framework detected: ' + isDetected);
 				return isDetected;
 			},
