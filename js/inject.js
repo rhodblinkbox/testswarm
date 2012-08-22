@@ -122,14 +122,17 @@
 		ul.insertBefore(li, ul.childNodes[0]);
 	}
 	
+	// keep reference to logger. logger needs to work before it gets added to DOM.
 	var logger = null;
 	function getLogger()
 	{
 		if(!logger) {
+			// create logger if null;
 			logger = document.createElement( 'ul' );
 			logger.id = 'logger';		
 		}
 		
+		// add logger to DOM
 		if(document.body && !document.getElementById('logger'))
 		{
 			var loggerWrapper = document.createElement( 'div' );
@@ -137,9 +140,9 @@
 			
 			var logHeader = document.createElement( 'h1' );
 			logHeader.innerText = 'Run logs:';
-			loggerWrapper.appendChild(logHeader);
+			loggerWrapper.appendChild( logHeader );
 			
-			loggerWrapper.appendChild(logger);			
+			loggerWrapper.appendChild( logger );
 			document.body.appendChild( loggerWrapper );
 		}
 	
