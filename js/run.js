@@ -179,7 +179,7 @@
 				log( 'Running ' + ( runInfo.desc || '' ) + ' tests...' );
 
 				iframe = document.createElement( 'iframe' );
-				iframe.width = 1000;
+				iframe.width = '99%';
 				iframe.height = 600;
 				iframe.className = 'test-runner-frame';
 				iframe.src = currRunUrl + (currRunUrl.indexOf( '?' ) > -1 ? '&' : '?') + $.param({
