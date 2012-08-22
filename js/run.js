@@ -200,13 +200,6 @@
 
 				$( '#iframes' ).append( iframe );
 
-				var iframes = $('iframe');
-				log('run.js: runTests(): iframes count: ' + iframes.length);
-				if( iframes.length == 1 ) {
-					var iframe = iframes[0];
-					log('run.js: runTests(): iframe[0].src=' + iframe.src);					
-				}
-
 				// Timeout after a period of time
 				testTimeout = setTimeout( function () {
 					testTimedout( runInfo );
