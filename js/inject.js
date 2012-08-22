@@ -132,17 +132,21 @@
 		
 		if(document.body && !document.getElementById('logger'))
 		{
+			var loggerWrapper = document.createElement( 'div' );
+			loggerWrapper.id = 'loggerWrapper';
+			
 			var logHeader = document.createElement( 'h1' );
 			logHeader.innerText = "Run logs:";
+			loggerWrapper.appendChild(logHeader);
+			
+			loggerWrapper.appendChild(logger);			
 				
 			var logFirst = /runnermode\=logfirst/i.test(location.search);
 			if(logFirst) {
 				var firstElement = document.body.childNodes[0];
-				document.body.insertBefore(logger, firstElement);
-				document.body.insertBefore(logHeader, logger);				
+				document.body.insertBefore(loggerWrapper, firstElement);	
 			} else {
-				document.body.appendChild( logHeader );
-				document.body.appendChild( logger );
+				document.body.appendChild( loggerWrapper );
 			}
 			log('logFirst:' + logFirst);
 		}
