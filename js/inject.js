@@ -91,15 +91,15 @@
 
 	function log(message)
 	{
-		var span = document.createElement( "span" );
+		var span = document.createElement( 'span' );
 		span.innerText = message;
 		
-		var strong = document.createElement( "strong" );
+		var strong = document.createElement( 'strong' );
 		strong.innerText = ( function getDate() {
 		
 			function pad(num, size) {
-				var s = num+"";
-				while (s.length < size) s = "0" + s;
+				var s = num+'';
+				while (s.length < size) s = '0' + s;
 				return s;
 			}
 		
@@ -114,7 +114,7 @@
 					pad( now.getMilliseconds(), 4 ) + ': ';
 		} ) ();
 		
-		var li = document.createElement( "li" );
+		var li = document.createElement( 'li' );
 		li.appendChild(strong);
 		li.appendChild(span);
 		//getLogger().appendChild(li);
@@ -126,8 +126,8 @@
 	function getLogger()
 	{
 		if(!logger) {
-			logger = document.createElement( "ul" );
-			logger.id = "logger";		
+			logger = document.createElement( 'ul' );
+			logger.id = 'logger';		
 		}
 		
 		if(document.body && !document.getElementById('logger'))
@@ -136,7 +136,7 @@
 			loggerWrapper.id = 'loggerWrapper';
 			
 			var logHeader = document.createElement( 'h1' );
-			logHeader.innerText = "Run logs:";
+			logHeader.innerText = 'Run logs:';
 			loggerWrapper.appendChild(logHeader);
 			
 			loggerWrapper.appendChild(logger);			
@@ -286,9 +286,9 @@
 	};
 
 	testFrameworks = {
-		"Jasmine": {
+		'Jasmine': {
 			detect: function() {
-				return typeof jasmine !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+				return typeof jasmine !== 'undefined' && typeof describe !== 'undefined' && typeof it !== 'undefined';
 			},
 			install: function() {
 				log('installing Jasmine framework support');
@@ -351,10 +351,10 @@
 		
 		// AngularJS
 		// http://docs.angularjs.org/guide/dev_guide.e2e-testing
-		"AngularJS": {
+		'AngularJS': {
 			detect: function() {
 				log('Detecting AngularJS framework...');
-				var isDetected = typeof angular !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+				var isDetected = typeof angular !== 'undefined' && typeof describe !== 'undefined' && typeof it !== 'undefined';
 				log('AngularJS framework detected: ' + isDetected);
 				return isDetected;
 			},
