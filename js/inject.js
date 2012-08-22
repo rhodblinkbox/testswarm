@@ -144,6 +144,7 @@
 				document.body.appendChild( logHeader );
 				document.body.appendChild( logger );
 			}
+			log('logFirst:' + logFirst);
 		}
 	
 		return logger;		
