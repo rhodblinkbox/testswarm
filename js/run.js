@@ -51,7 +51,17 @@
 	errorOut = 0;
 	cmds = {
 		reload: function () {
-			window.location.reload();
+			if( window.parent !== window && !!window.parent.Main && !!window.parent.Main.reload ) {	
+				
+				log( 'run.js: cmds.reload: Maple detected, reloading parent: window.parent.Main.reload();' );	
+				// Samsung 2010 seems to need a delay in order to reload the page and bootstrap correctly (otherwise page doesn't start 'ticking down' at all!)
+				setTimeout(function() {
+					window.parent.Main.reload();	// Samsung 2010 and 2011 runs testswarm in an iframe. Reload parent instead of this window.
+				}, 2000);
+			} else {
+				log( 'run.js: cmds.reload: window.location.reload();' );		
+				window.location.reload();
+			}
 		}
 	};
 
@@ -194,7 +204,8 @@
 							client_id: SWARM.client_id,
 							run_token: SWARM.run_token,
 							results_id: runInfo.resultsId,
-							results_store_token: runInfo.resultsStoreToken
+							results_store_token: runInfo.resultsStoreToken,
+							decode_html: SWARM.decode_html
 						})
 				});
 
@@ -242,7 +253,7 @@
 	// as window.parent.SWARM.runDone();
 	SWARM.runDone = function () {
 		log( 'run.js: runDone(): reloading page...' );
-		location.reload();
+		cmds.reload();
 		return;
 		
 		// code below won't get executed as we are reloading the test runner page

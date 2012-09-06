@@ -59,7 +59,14 @@ class SaverunAction extends Action {
 		$error = $request->getInt( 'error', 0 );
 		$status = $request->getInt( 'status', 2 );
 		$reportHtml = $request->getVal( 'report_html', '' );
-
+		$decodeHtml = $request->getVal( 'decode_html', 'false' );
+		
+		// Samsung 2010 encodes the data submitted in the form fields.
+		// Body of the test runner needs to be decoded before it gets stored in the database.
+		if ( $decodeHtml === 'true' ) { 
+			$reportHtml = urldecode( $reportHtml );
+		}
+		
 		if ( !in_array( $status, array( 2, 3 ) ) ) {
 			$this->setError( 'invalid-input', 'Illegal status to be set from the client side in action=saverun.' );
 			return;

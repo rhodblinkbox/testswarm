@@ -213,7 +213,49 @@
 		$timestamp = $timestamp === 0 ? time() : $timestamp;
 		return gmdate( 'YmdHis', $timestamp );
 	}
+	
+	// return user agent
+	function getUserAgent() {
+		return $_SERVER['HTTP_USER_AGENT'];	
+	}
 
+	// check if browser is maple
+	function isMaple( ) {
+		return preg_match( '/Maple/', getUserAgent() ) == 1;
+	}
+	
+	// get relative path from A to B
+	function getRelativePath($from, $to)
+	{
+		$from     = explode('/', $from);
+		$to       = explode('/', $to);
+		$relPath  = $to;
+
+		foreach($from as $depth => $dir) {
+			// find first non-matching dir
+			if($dir === $to[$depth]) {
+				// ignore this directory
+				array_shift($relPath);
+			} else {
+				// get number of remaining dirs to $from
+				$remaining = count($from) - $depth;
+				if($remaining > 1) {
+					// add traversals up to first matching dir
+					$padLength = (count($relPath) + $remaining - 1) * -1;
+					$relPath = array_pad($relPath, $padLength, '..');
+					break;
+				} else {
+					$relPath[0] = './' . $relPath[0];
+				}
+			}
+		}
+		return implode('/', $relPath);
+	}
+
+	function getCurrentRequestPath() {
+		return $_SERVER['REQUEST_URI'];
+	}
+	
 	/*
 	 * Central function to get paths to files and directories
 	 * @since 0.1.0
@@ -263,5 +305,10 @@
 			$rel = substr($rel, 1);
 		}
 
-		return $prefix . $rel;
+		$result = $prefix . $rel;
+		
+		if ( isMaple () ) {
+			$result = getRelativePath(getCurrentRequestPath(), $result);
+		}
+		return $result;
 	}

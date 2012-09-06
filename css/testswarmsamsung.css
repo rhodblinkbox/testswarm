@@ -1,0 +1,127 @@
+
+/* Make tables spaced out a bit more */
+
+body div {
+	background-color: #eee;
+}
+
+h2 + table,
+h3 + table,
+h4 + table,
+h2 + .row {
+  margin-top: 5px;
+}
+
+.swarm-code-nowrap {
+	white-space: nowrap;
+}
+
+.swarm-toollinks {
+	text-align: right;
+}
+
+.swarm-browseronline {
+	position: relative;
+	text-align: center;
+}
+
+.swarm-browseronline .swarm-onlineclients {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	line-height: normal;
+}
+
+.swarm-browseronline .swarm-browsericon {
+	height: 48px;
+	margin: 10px 0;
+}
+
+.swarm-browseronline .swarm-onlineclients,
+.swarm-browseronline .swarm-browsername {
+	font-size: 11px;
+}
+
+.swarm-browseronline .swarm-browsername:hover {
+	cursor: default;
+}
+
+/**
+ * Results table.
+ * The swarm-status colors are now all derived from the following greens:
+ * #DBEFD7 (bg) / #468847 (text). The derived colors are calculated using
+ * HSL, and for clarity I've included those so that it's easy to update the
+ * saturation/lightness later. However due to browser support I the CSS
+ * properties are set to the HEX verions.
+ *
+ * background: hsl(H.., 44%, 89%)
+ *                           color: hsl(H.., 32%, 40%)
+ * -
+ * new:        hsl(0,   0%,  91%) / hsl(0,   0%,  40%)
+ * progress:   hsl(49,  44%, 89%) / hsl(49,  32%, 40%)
+ * passed:     hsl(110, 44%, 89%) / hsl(110, 32%, 40%)
+ * failure, timedout
+ * and error:  hsl(0,   44%, 89%) / hsl(0,   32%, 40%)
+ */
+
+table.swarm-results thead th,
+table.swarm-results tbody td.swarm-status {
+	text-align: center;
+	background: #fff;
+}
+
+table.swarm-results th img.swarm-browsericon {
+	max-height: 28px;
+}
+
+table.swarm-results tbody td.swarm-status {
+	font-weight: bold;
+}
+
+table.swarm-results tbody td.swarm-status-new {
+	background: #E8E8E8;
+}
+table.swarm-results tbody td.swarm-status-new,
+table.swarm-results tbody td.swarm-status-new a {
+	color: #666);
+}
+
+table.swarm-results tbody td.swarm-status-progress {
+	background: #EFEBD7;
+}
+
+table.swarm-results tbody td.swarm-status-progress,
+table.swarm-results tbody td.swarm-status-progress a {
+	color: #877B45;
+}
+
+table.swarm-results tbody td.swarm-status-passed {
+	background: #DBEFD7;
+}
+table.swarm-results tbody td.swarm-status-passed,
+table.swarm-results tbody td.swarm-status-passed a {
+	color: #508745;
+}
+
+table.swarm-results tbody td.swarm-status-timedout,
+table.swarm-results tbody td.swarm-status-error,
+table.swarm-results tbody td.swarm-status-failed {
+	background: #EFD7D7;
+}
+table.swarm-results tbody td.swarm-status-timedout,
+table.swarm-results tbody td.swarm-status-timedout a,
+table.swarm-results tbody td.swarm-status-error,
+table.swarm-results tbody td.swarm-status-error a,
+table.swarm-results tbody td.swarm-status-failed,
+table.swarm-results tbody td.swarm-status-failed a {
+	color: #874545);
+}
+
+table.swarm-results tbody td.swarm-status-notscheduled {
+	background: #fff;
+}
+
+.swarm-page-footer {
+	text-align: center;
+	margin-bottom: 18px;
+}

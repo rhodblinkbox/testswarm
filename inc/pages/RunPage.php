@@ -27,7 +27,7 @@ class RunPage extends Page {
 		$this->setTitle( "Test runner" );
 		$this->displayPageTitle = false;
 		$this->displayNavBar = false;
-		$this->useContainerCssClass = false;
+		$this->useContainerCssClass = true;
 		$this->bodyScripts[] = swarmpath( "js/run.js?" . time() );
 
 		$client = null;
@@ -52,6 +52,7 @@ class RunPage extends Page {
 		$html = '<script>'
 			. 'SWARM.client_id = ' . json_encode( $clientId ) . ';'
 			. 'SWARM.run_token = ' . json_encode( $runToken ) . ';'
+			. 'SWARM.decode_html = ' . json_encode ( isMaple() ) . ';'
 			. '</script>';
 
 		$html .=

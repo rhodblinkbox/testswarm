@@ -201,8 +201,8 @@ abstract class Page {
 	$displayTitleHtml = $this->getDisplayTitleHtml();
 ?>
 	<title><?php echo htmlentities( $htmlTitle ); ?></title>
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/bootstrap.min.css' ); ?>">
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/testswarm.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/bootstrapsamsung.css' ) : swarmpath( 'css/bootstrap.min.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/testswarmsamsung.css' ) : swarmpath( 'css/testswarm.css' ); ?>">
 	<script src="<?php echo swarmpath( 'js/jquery.js' ); ?>"></script>
 	<script src="<?php echo swarmpath( 'js/bootstrap-dropdown.js' ); ?>"></script>
 	<script>window.SWARM = <?php
@@ -356,8 +356,8 @@ if ( $this->useContainerCssClass ) {
 		. ' - '
 		. $this->getContext()->getConf()->web->title
 	); ?></title>
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/bootstrap.min.css' ); ?>">
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/testswarm.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/bootstrapsamsung.css' ) : swarmpath( 'css/bootstrap.min.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/testswarmsamsung.css' ) : swarmpath( 'css/testswarm.css' ); ?>">
 </head>
 <body>
 <div class="hero-unit">
