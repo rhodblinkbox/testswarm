@@ -41,8 +41,7 @@ class AdddevboxjobPage extends Page {
 
 		$error = $this->getAction()->getError();
 		$data = $this->getAction()->getData();
-		$jobId = $data["id"];
-		
+				
 		if ( $request->wasPosted() ) {
 			if ( $error ) {
 				$html .= html_tag( "div", array( "class" => "alert alert-error" ), $error["info"] );
@@ -58,7 +57,10 @@ class AdddevboxjobPage extends Page {
 			}
 		}
 		
-		header( "X-TestSwarm-JobId: $jobId", true );
+		if ($data && isset( $data["id"] ) ) {
+			$jobId = $data["id"];
+			header( "X-TestSwarm-JobId: $jobId", true );
+		}
 		
 		$html .= $this->getAddjobFormHtml();
 
