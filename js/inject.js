@@ -24,7 +24,6 @@
 	index = search.indexOf( 'swarmURL=' );
 	submitTimeout = 5;
 	beatRate = 20;
-
 	try {
 		doPost = !!window.parent.postMessage;
 	} catch ( e ) {}
@@ -41,7 +40,13 @@
 	if ( !DEBUG ) {
 		window.print = window.confirm = window.alert = window.open = function () {};
 	}
-
+	
+	var css = document.createElement('link'), 
+		baseUrl = url.split('index.php?')[0];
+	css.rel = 'stylesheet';
+	css.href = baseUrl + 'css/runner.css';
+	document.getElementsByTagName('head')[0].appendChild(css);
+	
 	/** Utility functions **/
 
 	function debugObj( obj ) {
@@ -92,7 +97,12 @@
 	function log(message)
 	{
 		var span = document.createElement( 'span' );
-		span.innerText = message;
+		if (typeof message === 'string') {
+			span.innerText = message;
+		} 
+		if (typeof message === 'object') {
+			span.innerText = message.message;
+		}
 		
 		var strong = document.createElement( 'strong' );
 		strong.innerText = ( function getDate() {
@@ -115,13 +125,16 @@
 		} ) ();
 		
 		var li = document.createElement( 'li' );
+		if (typeof message === 'object') {
+			li.className = message.cssClass;
+		}
 		li.appendChild(strong);
 		li.appendChild(span);
 		//getLogger().appendChild(li);
 		var ul = getLogger();
 		ul.insertBefore(li, ul.childNodes[0]);
 	}
-	
+
 	// keep reference to logger. logger needs to work before it gets added to DOM.
 	var logger = null;
 	function getLogger()
@@ -129,7 +142,7 @@
 		if(!logger) {
 			// create logger if null;
 			logger = document.createElement( 'ul' );
-			logger.id = 'logger';		
+			logger.id = 'logger';
 		}
 		
 		// add logger to DOM
@@ -274,26 +287,29 @@
 	window.TestSwarm = {
 		submit: submit,
 		heartbeat: function ( name ) {
-			try {
 			
-				if ( window.curHeartbeat !== undefined ) {
-					clearTimeout( window.curHeartbeat );
-				}
-			
-				var msg = 'Heartbeating... ';
-				if ( !!name && typeof name === "string" ) {
-					msg += name;
-				}
-							
-				log( msg );
-
-				window.curHeartbeat = setTimeout(function () {
-					log('Heartbeat caused results submission...');
-					submit({ fail: -1, total: -1 });
-				}, beatRate * 1000);
-			} catch (e) {
-				log ( 'Heartbeat error: ' + e );
+			if ( window.curHeartbeat !== undefined ) {
+				clearTimeout( window.curHeartbeat );
 			}
+		
+			var msg = 'Heartbeating... ';
+			if( !!name ) {
+				if ( typeof name === "string" ) {
+					name = msg + name;
+				}
+				
+				if ( typeof name === "object" ) {
+					name.message = msg + name.message;
+				}
+				
+				log( name );
+			}		
+
+			window.curHeartbeat = setTimeout(function () {
+				log('Heartbeat caused results submission...');
+				submit({ fail: -1, total: -1 });
+			}, beatRate * 1000);
+
 		},
 		serialize: function () {
 			return trimSerialize();
@@ -481,20 +497,37 @@
 					});
 				};
 
-				var moduleCount = 0, testCount = 0;
+				var moduleCount = 0, testCount = 0, logCount = 0;
 				
 				QUnit.testStart = function( name ) {
 					testCount++;
+					logCount = 0;
 					var msg = 'QUnit: testStart ' + testCount + ': ' + name.name;
-					QUnit.heartbeat( msg );
+					QUnit.heartbeat( {
+						message: msg,
+						cssClass: 'test'
+					} );
 				};
 				
 				QUnit.moduleStart = function( name ) {
 					moduleCount++;
 					var msg = 'QUnit: moduleStart ' + moduleCount + ': ' + name.name;
-					QUnit.heartbeat( msg );
+					QUnit.heartbeat( {
+						message: msg,
+						cssClass: 'group'
+					} );
 				};
 				
+				// result, actual, expected, message
+				QUnit.log = function ( results ) {
+					logCount++;
+					var msg = 'QUnit: log ' + logCount + ': ' + results.message;
+					QUnit.heartbeat( {
+						message: msg,
+						cssClass: 'run'
+					} );					
+				};				
+
 				QUnit.heartbeat = window.TestSwarm.heartbeat;
 
 				QUnit.heartbeat();
