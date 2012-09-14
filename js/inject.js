@@ -273,15 +273,27 @@
 	// Expose the TestSwarm API
 	window.TestSwarm = {
 		submit: submit,
-		heartbeat: function () {
-			if ( curHeartbeat ) {
-				clearTimeout( curHeartbeat );
-			}
+		heartbeat: function ( name ) {
+			try {
+			
+				if ( window.curHeartbeat !== undefined ) {
+					clearTimeout( window.curHeartbeat );
+				}
+			
+				var msg = 'Heartbeating... ';
+				if ( !!name && typeof name === "string" ) {
+					msg += name;
+				}
+							
+				log( msg );
 
-			curHeartbeat = setTimeout(function () {
-				log('Heartbeat caused results submission...');
-				submit({ fail: -1, total: -1 });
-			}, beatRate * 1000);
+				window.curHeartbeat = setTimeout(function () {
+					log('Heartbeat caused results submission...');
+					submit({ fail: -1, total: -1 });
+				}, beatRate * 1000);
+			} catch (e) {
+				log ( 'Heartbeat error: ' + e );
+			}
 		},
 		serialize: function () {
 			return trimSerialize();
@@ -459,6 +471,8 @@
 				return typeof QUnit !== 'undefined';
 			},
 			install: function () {
+				log( 'Installing QUnit support...' );
+				
 				QUnit.done = function ( results ) {
 					submit({
 						fail: results.failed,
@@ -467,8 +481,23 @@
 					});
 				};
 
-				QUnit.log = window.TestSwarm.heartbeat;
-				window.TestSwarm.heartbeat();
+				var moduleCount = 0, testCount = 0;
+				
+				QUnit.testStart = function( name ) {
+					testCount++;
+					var msg = 'QUnit: testStart ' + testCount + ': ' + name.name;
+					QUnit.heartbeat( msg );
+				};
+				
+				QUnit.moduleStart = function( name ) {
+					moduleCount++;
+					var msg = 'QUnit: moduleStart ' + moduleCount + ': ' + name.name;
+					QUnit.heartbeat( msg );
+				};
+				
+				QUnit.heartbeat = window.TestSwarm.heartbeat;
+
+				QUnit.heartbeat();
 
 				window.TestSwarm.serialize = function () {
 					var ol, i;
