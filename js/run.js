@@ -60,7 +60,7 @@
 				}, 2000);
 			} else {
 				log( 'run.js: cmds.reload: window.location.reload();' );		
-				window.location.reload();
+				window.top.location.reload();
 			}
 		}
 	};
