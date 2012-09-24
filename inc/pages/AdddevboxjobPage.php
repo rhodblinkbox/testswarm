@@ -55,6 +55,12 @@ class AdddevboxjobPage extends Page {
 			}
 		}
 		
+		// Return the job Id for automated requests
+		if ($data && isset( $data["id"] ) ) {
+			$jobId = $data["id"];
+			header( "X-TestSwarm-JobId: $jobId", true );
+		}
+		
 		$html .= $this->getAddjobFormHtml();
 
 		return $html;
