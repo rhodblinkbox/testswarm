@@ -1,0 +1,56 @@
+<div ng-app="dashboard">
+	<h1>{{"Dashboard"}}!</h1>
+	<hr/>
+	<div ng:controller="devicesController">
+		<table>
+			<tr>
+				<th>id</th>
+				<th>ip</th>
+				<th>browser name</th>
+				<th>updated</th>
+			</tr>
+			<tr ng-repeat="device in devices">
+				<td>{{device.id}}</td>
+				<td>{{device.ip}}</td>
+				<td>{{device.browserName}}</td>
+				<td>{{device.updated}}</td>
+			</tr>
+		</table>
+	</div>
+	<hr/>
+	<div ng:controller="configController">
+		<p>Device alive threshold: {{deviceAliveThreshold}}s</p>
+		<p>Dashboard refresh interval: {{refreshInterval}}s</p>
+	</div>
+</div>
+<script type="text/javascript" src="/testswarm/js/angular.min.js"></script>
+<script type="text/javascript" src="/testswarm/js/angular-resource.min.js"></script>
+<script type="text/javascript">
+
+	angular
+		.module('dashboard', [ 'ngResource' ])
+		.service('config', function () {
+		
+			var config = { 
+				deviceAliveThreshold: window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
+				refreshInterval: 5
+			};
+			
+			return config;
+		})
+		.service('api', function ($resource) {
+			return $resource('api.php', { action: 'dashboardRefresh' }, { 'query': { method: 'POST' } });
+		});
+		
+	function configController($scope, config) {
+	   $scope.deviceAliveThreshold = config.deviceAliveThreshold;
+	   $scope.refreshInterval = config.refreshInterval;
+	}
+	
+	function devicesController($scope, $resource) {
+		var result = $resource('api.php', { action: 'dashboardRefresh' }, { 'query': { method: 'POST' } }).query(function() {
+			$scope.devices = result.dashboardRefresh.devices;
+		});
+	}
+
+</script>
