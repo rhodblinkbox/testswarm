@@ -1,6 +1,6 @@
 <div ng-app="dashboard">
 	<div ng:controller="devicesController">
-		<div><span ng:show="loading">Updating...</span></div>
+		<div>Updating data in: {{secondsToUpdateText()}}...</div>
 		<table>
 			<tr>
 				<th>id</th>
@@ -46,15 +46,25 @@
 	}
 	
 	function devicesController($scope, $timeout, api, config) {
-		
-		$scope.refresh = function () {
-			$scope.loading = true;
+		$scope.secondsToUpdate = 0;
 			
-			var result = api.query(function() {
-				$scope.loading = false;
-				$scope.devices = result.dashboardRefresh.devices;
-				$timeout( $scope.refresh, config.refreshInterval * 1000 );
-			});
+		$scope.refresh = function () {
+
+			if ( $scope.secondsToUpdate <= 0 ) {						
+				var result = api.query(function() {
+					$scope.loading = false;
+					$scope.devices = result.dashboardRefresh.devices;
+					$scope.secondsToUpdate = config.refreshInterval;			
+					$timeout( $scope.refresh, 1000 );
+				});				
+			} else {
+				$scope.secondsToUpdate--;
+				$timeout( $scope.refresh, 1000 );
+			}
+		}
+		
+		$scope.secondsToUpdateText = function () {
+			return $scope.secondsToUpdate <= 0 ? "in progress" : $scope.secondsToUpdate + "s";
 		}
 		
 		$scope.refresh();
