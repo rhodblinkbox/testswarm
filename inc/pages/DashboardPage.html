@@ -29,7 +29,7 @@
 
 	angular
 		.module('dashboard', [ 'ngResource' ])
-		.service('config', function () {
+		.factory('config', [function () {
 		
 			var config = { 
 				deviceAliveThreshold: window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
@@ -37,18 +37,18 @@
 			};
 			
 			return config;
-		})
-		.service('api', function ($resource) {
+		}])
+		.factory('api', ['$resource', function ($resource) {
 			return $resource('api.php', { action: 'dashboardRefresh' }, { 'query': { method: 'POST' } });
-		});
+		}]);
 		
 	function configController($scope, config) {
 	   $scope.deviceAliveThreshold = config.deviceAliveThreshold;
 	   $scope.refreshInterval = config.refreshInterval;
 	}
 	
-	function devicesController($scope, $resource) {
-		var result = $resource('api.php', { action: 'dashboardRefresh' }, { 'query': { method: 'POST' } }).query(function() {
+	function devicesController($scope, api) {
+		var result = api.query(function() {
 			$scope.devices = result.dashboardRefresh.devices;
 		});
 	}
