@@ -12,9 +12,26 @@ class DashboardRefreshAction extends Action {
 	 * Return clients.
 	 *
 	 * @actionMethod POST: Required.
+	 * @actionParam deviceTooOldThreshold run_token int
+	 *
 	 */
 	public function doAction() {
 		$db = $this->getContext()->getDB();
+		
+		$request = $this->getContext()->getRequest();
+
+		if ( !$request->wasPosted() ) {
+			$this->setError( "requires-post" );
+			return;
+		}
+		
+		// ignore devices seen more then deviceTooOldThreshold seconds ago
+		$deviceTooOldThreshold = $request->getInt( "deviceTooOldThreshold" );
+
+		if ( !$deviceTooOldThreshold ) {
+			$this->setError( "missing-deviceTooOldThreshold" );
+			return;
+		}
 		
 		// Get runs for this job
 		$deviceRows = $db->getRows(str_queryf(
@@ -25,21 +42,23 @@ class DashboardRefreshAction extends Action {
 				updated
 			FROM
 				clients
+			WHERE 
+				updated >= now() - %u
 			ORDER BY 
-				updated desc;'
+				updated desc;',
+			$deviceTooOldThreshold
 		));
 		
 		$devices = array();
 		
 		if( $deviceRows ) {
 			foreach ( $deviceRows as $deviceRow ) {
-				
 				array_push($devices,
 					array(
 						'id' => $deviceRow->id,
 						'ip' => $deviceRow->ip,
 						'browserName' => $deviceRow->browserName,
-						'updated' => $deviceRow->updated					
+						'updated' => strtotime($deviceRow->updated)
 					)
 				);
 			}		
@@ -48,6 +67,7 @@ class DashboardRefreshAction extends Action {
 		// Start of response data
 		$respData = array(
 			'devices' => $devices,
+			'serverTime' => time()//date('Y-m-d H:i:s')
 		);
 
 		// Save data

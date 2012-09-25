@@ -38,8 +38,8 @@
 			
 			return config;
 		}])
-		.factory('api', ['$resource', function ($resource, config) {
-			return $resource('api.php', { action: 'dashboardRefresh' }, { 'query': { method: 'POST', params: { } } });
+		.factory('api', ['$resource', 'config', function ($resource, config) {
+			return $resource('api.php', { action: 'dashboardRefresh' }, { 'query': { method: 'POST', params: { deviceTooOldThreshold: config.deviceTooOldThreshold } } });
 		}]);
 		
 	function configController($scope, config) {
@@ -57,6 +57,7 @@
 				var result = api.query(function() {
 					$scope.loading = false;
 					$scope.devices = result.dashboardRefresh.devices;
+					$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
 					$scope.secondsToUpdate = config.refreshInterval;			
 					$timeout( $scope.refresh, 1000 );
 				});				
