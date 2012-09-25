@@ -1,7 +1,6 @@
 <div ng-app="dashboard">
-	<h1>{{"Dashboard"}}!</h1>
-	<hr/>
 	<div ng:controller="devicesController">
+		<div><span ng:show="loading">Updating...</span></div>
 		<table>
 			<tr>
 				<th>id</th>
@@ -10,7 +9,6 @@
 				<th>updated</th>
 			</tr>
 			<tr ng-repeat="device in devices">
-				<td>{{device.id}}</td>
 				<td>{{device.ip}}</td>
 				<td>{{device.browserName}}</td>
 				<td>{{device.updated}}</td>
@@ -47,10 +45,19 @@
 	   $scope.refreshInterval = config.refreshInterval;
 	}
 	
-	function devicesController($scope, api) {
-		var result = api.query(function() {
-			$scope.devices = result.dashboardRefresh.devices;
-		});
+	function devicesController($scope, $timeout, api, config) {
+		
+		$scope.refresh = function () {
+			$scope.loading = true;
+			
+			var result = api.query(function() {
+				$scope.loading = false;
+				$scope.devices = result.dashboardRefresh.devices;
+				$timeout( $scope.refresh, config.refreshInterval * 1000 );
+			});
+		}
+		
+		$scope.refresh();
 	}
 
 </script>
