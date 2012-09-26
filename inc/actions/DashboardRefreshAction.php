@@ -1,6 +1,6 @@
 <?php
 /**
- * "Ping" action.
+ * "DashboardRefresh" action.
  *
  * @author Maciej Borzecki, 2012
  * @since 1.0.0
@@ -12,12 +12,10 @@ class DashboardRefreshAction extends Action {
 	 * Return clients.
 	 *
 	 * @actionMethod POST: Required.
-	 * @actionParam deviceTooOldThreshold run_token int
+	 * @actionParam deviceTooOldThreshold int
 	 *
 	 */
-	public function doAction() {
-		$db = $this->getContext()->getDB();
-		
+	public function doAction() {		
 		$request = $this->getContext()->getRequest();
 
 		if ( !$request->wasPosted() ) {
@@ -34,12 +32,14 @@ class DashboardRefreshAction extends Action {
 		}
 		
 		// Get runs for this job
+		$db = $this->getContext()->getDB();
 		$deviceRows = $db->getRows(str_queryf(
 			'SELECT
 				id, 
 				ip, 
-				useragent_id as \'browserName\', 
-				updated
+				useragent_id as browser, 
+				updated,
+				device_name as name
 			FROM
 				clients
 			WHERE 
@@ -57,8 +57,9 @@ class DashboardRefreshAction extends Action {
 					array(
 						'id' => $deviceRow->id,
 						'ip' => $deviceRow->ip,
-						'browserName' => $deviceRow->browserName,
-						'updated' => strtotime($deviceRow->updated)
+						'browser' => $deviceRow->browser,
+						'updated' => strtotime($deviceRow->updated),
+						'name' => $deviceRow->name						
 					)
 				);
 			}		

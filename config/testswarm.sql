@@ -50,6 +50,9 @@ CREATE TABLE `clients` (
   -- Key to useragents.ini section.
   `useragent_id` varchar(255) NOT NULL default '',
 
+  -- Device name.
+  `device_name` varchar(255) NULL,
+
   -- Raw User-Agent string.
   `useragent` tinytext NOT NULL,
 

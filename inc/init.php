@@ -85,6 +85,7 @@ $swarmAutoLoadClasses = array(
 	'ResultAction' => 'inc/actions/ResultAction.php',
 	'SaverunAction' => 'inc/actions/SaverunAction.php',
 	'ScoresAction' => 'inc/actions/ScoresAction.php',
+	'SetDeviceNameAction' => 'inc/actions/SetDeviceNameAction.php',
 	'SignupAction' => 'inc/actions/SignupAction.php',
 	'SwarmstateAction' => 'inc/actions/SwarmstateAction.php',
 	'UserAction' => 'inc/actions/UserAction.php',
