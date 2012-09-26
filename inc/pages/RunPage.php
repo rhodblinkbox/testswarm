@@ -64,6 +64,8 @@ class RunPage extends Page {
 						. '" alt="' . htmlspecialchars( $uaItem->displaytitle )
 						. '" title="' . htmlspecialchars( $uaItem->displaytitle ) . '">'
 					. '<span class="label">' . htmlspecialchars( $uaItem->displaytitle ) . '</span>'
+					. '<br/>'
+					. '<span class="label label-info" id="deviceName"></span>'
 					. '</div>'
 				. '</div>'
 				. '<div class="span7">'

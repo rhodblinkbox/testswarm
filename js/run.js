@@ -292,7 +292,11 @@
 					cmds.reload();
 					return;
 				}
-
+	
+				if( data.ping.confUpdate.deviceName !== SWARM.conf.deviceName ) {
+					$('#deviceName').text(data.ping.confUpdate.deviceName);
+				}
+				
 				$.extend( SWARM.conf, data.ping.confUpdate );
 			}
 		}).always( function () {
