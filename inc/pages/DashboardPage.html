@@ -38,10 +38,10 @@
 				<h1>Dashboard settings</h1>
 			</div>
 			<div class="modal-body">
-				<p><span>Device warning threshold</span> <strong>{{deviceWarningThreshold}}s</strong></p>
-				<p><span>Device error threshold</span> <strong>{{deviceErrorThreshold}}s ( {{ deviceErrorThreshold / (60*60) }} hours )</strong></p>
-				<p><span>Device too old threshold</span> <strong>{{deviceTooOldThreshold}}s ( {{ deviceTooOldThreshold / (24*60*60) }} days )</strong></p>		
-				<p><span>Dashboard refresh interval</span> <strong>{{refreshInterval}}s</strong></p>
+				<p><span>Device warning threshold</span> <strong>{{deviceWarningThreshold}}s</strong><i rel="tooltip" title="You can use deviceWarningThreshold querystring parameter to override this setting." class="icon-question-sign"></i></p>
+				<p><span>Device error threshold</span> <strong>{{deviceErrorThreshold}}s ( {{ deviceErrorThreshold / (60*60) }} hours )</strong><i rel="tooltip" title="You can use deviceErrorThreshold querystring parameter to override this setting." class="icon-question-sign"></i></p>
+				<p><span>Device too old threshold</span> <strong>{{deviceTooOldThreshold}}s ( {{ deviceTooOldThreshold / (24*60*60) }} days )</strong><i rel="tooltip" title="You can use deviceTooOldThreshold querystring parameter to override this setting." class="icon-question-sign"></i></p>		
+				<p><span>Dashboard refresh interval</span> <strong>{{refreshInterval}}s</strong><i rel="tooltip" title="You can use refreshInterval querystring parameter to override this setting." class="icon-question-sign"></i></p>
 			</div>
 			<div class="modal-footer">
 				<a class="btn btn-info" ng-click="modalShown=false" href="">Close</a>
@@ -78,6 +78,7 @@
 <script type="text/javascript" src="/testswarm/js/angular-resource.min.js"></script>
 <script type="text/javascript" src="/testswarm/js/angular-ui.min.js"></script>
 <script type="text/javascript" src="/testswarm/js/bootstrap-modal.js"></script>
+<script type="text/javascript" src="/testswarm/js/bootstrap-tooltip.js"></script>
 <script type="text/javascript">
 	angular
 		.module('dashboard', [ 'ngResource', 'ui' ])
@@ -106,7 +107,7 @@
 			var config = { 
 				deviceWarningThreshold: params['deviceWarningThreshold'] || window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
 				deviceErrorThreshold: params['deviceErrorThreshold'] || 60 * 60,
-				deviceTooOldThreshold: params['deviceTooOldThreshold'] || 60 * 60 * 24 * 15,	// consider devices older then 15 days as not relevant
+				deviceTooOldThreshold: params['deviceTooOldThreshold'] || 60 * 60 * 24 * 15,	// consider devices older than 15 days as not relevant
 				refreshInterval: params['refreshInterval'] || 5
 			};
 			
@@ -130,6 +131,7 @@
 		$scope.$on('edit', function (event, device) {
 			$scope.device = device;
 			$scope.modalShown = true;
+			//$("[rel=tooltip]").tooltip();
 		});
 		
 		$scope.save = function() {
@@ -196,7 +198,7 @@
 			}
 			
 			if(result.length == 0) {
-				result.push('less then a minute');
+				result.push('less than a minute');
 			}
 			
 			result.push('ago');
@@ -221,7 +223,7 @@
 						devices.push(device);
 					}
 					
-					// Find a better way of updating the devices on the scope. Need to update rather then overwrite. Try to find a way to intercept class creation in the resource service.
+					// Find a better way of updating the devices on the scope. Need to update rather than overwrite. Try to find a way to intercept class creation in the resource service.
 					$scope.devices = devices;
 					$scope.secondsToUpdate = config.refreshInterval;			
 					$timeout( $scope.refresh, 1000 );
