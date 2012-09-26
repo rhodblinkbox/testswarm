@@ -46,12 +46,32 @@
 	angular
 		.module('dashboard', [ 'ngResource', 'ui' ])
 		.factory('config', [function () {
-		
+			/// <summary>Gets all query string parameters and returns them as an array.</summary>
+			function getQueryStringParams()
+			{
+				var vars = [], hash;
+				var q = document.URL.split('?')[1];
+				if (q != undefined)
+				{
+					q = q.split('&');
+					for (var i = 0; i < q.length; i++)
+					{
+						hash = q[i].split('=');
+						vars.push(hash[1]);
+						vars[hash[0]] = hash[1];
+					}
+				}
+
+				return vars;
+			}
+			
+			var params = getQueryStringParams();
+			
 			var config = { 
-				deviceWarningThreshold: window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
-				deviceErrorThreshold: 60 * 60,
-				deviceTooOldThreshold: 60 * 60 * 24 * 15,	// consider devices older then 15 days as not relevant
-				refreshInterval: 5
+				deviceWarningThreshold: params['deviceWarningThreshold'] || window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
+				deviceErrorThreshold: params['deviceErrorThreshold'] || 60 * 60,
+				deviceTooOldThreshold: params['deviceTooOldThreshold'] || 60 * 60 * 24 * 15,	// consider devices older then 15 days as not relevant
+				refreshInterval: params['refreshInterval'] || 5
 			};
 			
 			return config;
@@ -69,7 +89,7 @@
 	
 	function devicesController($scope, $timeout, api, config) {
 		$scope.secondsToUpdate = 0;
-	
+		
 		// Device class
 		function Device (device, now, deviceErrorThreshold, deviceWarningThreshold) {
 			this.id = parseInt(device.id);
