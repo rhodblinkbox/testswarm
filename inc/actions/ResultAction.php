@@ -88,7 +88,8 @@ class ResultAction extends Action {
 				id,
 				user_id,
 				useragent_id,
-				useragent
+				useragent,
+				device_name
 			FROM clients
 			WHERE id = %u;',
 			$row->client_id
@@ -106,6 +107,7 @@ class ResultAction extends Action {
 			'id' => $clientRow->id,
 			'uaID' => $clientRow->useragent_id,
 			'userAgent' => $clientRow->useragent,
+			'deviceName' => $clientRow->device_name,
 			'userID' => $userRow->id,
 			'userName' => $userRow->name,
 			'userUrl' => swarmpath( 'user/' . $userRow->name ),
