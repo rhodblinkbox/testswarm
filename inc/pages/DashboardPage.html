@@ -6,7 +6,7 @@
 				<tr>
 					<th>IP address</th>
 					<th>Browser</th>
-					<th>Updated</th>
+					<th>Last seen</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -14,7 +14,7 @@
 				<tr ng-repeat="device in devices">
 					<td>{{device.ip}}</td>
 					<td>{{device.browserName}}</td>
-					<td>{{device.updated}}</td>
+					<td>{{device.lastSeen}}</td>
 				</tr>
 			</tbody>
 		</table>		
@@ -69,26 +69,66 @@
 		$scope.secondsToUpdate = 0;
 	
 		// Device class
-		function Device (device) {
+		function Device (device, now) {
 			this.id = parseInt(device.id);
 			this.ip = device.ip;
 			this.browserName = device.browserName;
 			this.updated = new Date(device.updated * 1000);
+			
+			this.lastSeen = getLastSeenText((now - this.updated) / 1000);
+			
+			function getLastSeenText(seconds) {
+				var daysDifference = Math.floor(seconds/60/60/24);
+				seconds -= daysDifference*60*60*24;
+ 
+				var hoursDifference = Math.floor(seconds/60/60);
+				seconds -= hoursDifference*60*60;
+ 
+				var minutesDifference = Math.floor(seconds/60);
+				seconds -= minutesDifference*60;
+ 				
+				var result = [];
+				
+				if(daysDifference > 0) {
+					result.push(daysDifference);
+					result.push('days');
+				}
+				
+				if(hoursDifference > 0) {
+					result.push(hoursDifference);
+					result.push('hours');
+				}
+				
+				if(minutesDifference > 0) {
+					result.push(minutesDifference);
+					result.push('minutes');
+				}
+				
+				if(result.length == 0) {
+					result.push('less then a minute');
+				}
+				
+				result.push('ago');
+				
+				return result.join(' ');
+			}
 		}
 	
 		$scope.refresh = function () {
 
 			if ( $scope.secondsToUpdate <= 0 ) {						
 				api.query(function(result) {
+					$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
+					
 					var devices = [];
 					
 					for(var i=0; i < result.dashboardRefresh.devices.length; i++) {
-						var device = new Device(result.dashboardRefresh.devices[i]);
+						var device = new Device(result.dashboardRefresh.devices[i], $scope.serverTime);
 						devices.push(device);
 					}
 					
+					// Find a better way of updating the devices on the scope. Need to update rather then overwrite. Try to find a way to intercept class creation in the resource service.
 					$scope.devices = devices;
-					$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
 					$scope.secondsToUpdate = config.refreshInterval;			
 					$timeout( $scope.refresh, 1000 );
 				});				
