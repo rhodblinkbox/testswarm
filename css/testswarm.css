@@ -145,7 +145,7 @@ table.swarm-results tbody td.swarm-status-failed {
 	background: #EFD7D7;
 }
 table.swarm-results tbody td.swarm-status-cancelled {
-	background: #FEF8CA;
+	background: #FFFFFF;
 }
 table.swarm-results tbody td.swarm-status-timedout,
 table.swarm-results tbody td.swarm-status-timedout a,
