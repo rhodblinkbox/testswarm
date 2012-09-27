@@ -218,7 +218,10 @@ class JobAction extends Action {
 		}
 		if ( $status === 2 ) {
 			// A total of 0 tests ran is also considered an error
-			if ( $row->error > 0 || intval( $row->total ) === 0 ) {
+			//if ( $row->error > 0 || intval( $row->total ) === 0 ) {
+			
+			// BLINKBOX NOTE: we might have few tests where total might be equal to 0 and it should be considered as success
+			if ( $row->error > 0 ) {
 				return 'error';
 			}
 			// Passed or failed

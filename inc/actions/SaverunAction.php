@@ -118,7 +118,9 @@ class SaverunAction extends Action {
 			return;
 		}
 
-		$isPassed = $total > 0 && $fail === 0 && $error === 0;
+		//$isPassed = $total > 0 && $fail === 0 && $error === 0;
+		// BLINKBOX NOTE: we might have few tests where total might be equal to 0 and it should be considered as success
+		$isPassed = $fail === 0 && $error === 0;
 
 		// Use results_id in the WHERE clause as additional check, just in case
 		// this runresults row is no longer the primary linked one.
