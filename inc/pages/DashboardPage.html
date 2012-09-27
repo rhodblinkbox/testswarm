@@ -3,9 +3,14 @@
 		cursor: pointer;
 		cursor: hand;
 	}
+	
+	/* the top nav bar hides table caption so add padding here */
+	.navBarSpacer {
+		padding-top: 41px;
+	}
 </style>
 
-<div id="table" ng-app="dashboard">
+<div id="table" ng-app="dashboard" class="navBarSpacer">
 	<div ng:controller="devicesController">
 		<table class="table table-striped table-hover table-condensed">
 			<caption>{{devices.length}} devices found, updating data in {{secondsToUpdateText()}}...</caption>
