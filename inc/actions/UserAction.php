@@ -85,6 +85,7 @@ class UserAction extends Action {
 			$uaRunStatusStrength = array_flip(array(
 				"passed",
 				"new",
+				"cancelled",
 				"progress",
 				"failed",
 				"timedout",
