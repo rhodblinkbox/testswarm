@@ -25,6 +25,7 @@ class UserPage extends Page {
 			"timedout" => '<i class="icon-warning-sign" title="Maximum execution time exceeded"></i>',
 			"heartbeat" => '<i class="icon-heart" title="Heartbeat caused result submission"></i>',
 			"error" => '<i class="icon-flag" title="Aborted by an error"></i>',
+			"cancelled" => '<i class="icon-pause" title="Job execution has been cancelled."></i>'
 		);
 		return isset( $icons[$status] ) ? $icons[$status] : '';
 	}

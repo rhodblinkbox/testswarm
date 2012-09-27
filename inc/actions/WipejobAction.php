@@ -31,7 +31,7 @@ class WipejobAction extends Action {
 			return;
 		}
 
-		if ( !in_array( $wipeType, array( "delete", "reset" ) ) ) {
+		if ( !in_array( $wipeType, array( "delete", "reset", "cancel" ) ) ) {
 			$this->setError( "invalid-input" );
 			return;
 		}
@@ -67,25 +67,42 @@ class WipejobAction extends Action {
 
 		if ( $runRows ) {
 			foreach ( $runRows as $runRow ) {
-				if ( $wipeType === "delete" ) {
-					$db->query(str_queryf(
-						"DELETE
-						FROM run_useragent
-						WHERE run_id = %u;",
-						$runRow->id
-					));
-				} elseif ( $wipeType === "reset" ) {
-					$db->query(str_queryf(
-						"UPDATE run_useragent
-						SET
-							status = 0,
-							completed = 0,
-							results_id = NULL,
-							updated = %s
-						WHERE run_id = %u;",
-						swarmdb_dateformat( SWARM_NOW ),
-						$runRow->id
-					));
+				switch( $wipeType ) {
+					case "delete":
+						$db->query(str_queryf(
+							"DELETE
+							FROM run_useragent
+							WHERE run_id = %u;",
+							$runRow->id
+						));
+						break;
+						
+					case "reset":
+						$db->query(str_queryf(
+							"UPDATE run_useragent
+							SET
+								status = 0,
+								completed = 0,
+								results_id = NULL,
+								updated = %s
+							WHERE run_id = %u;",
+							swarmdb_dateformat( SWARM_NOW ),
+							$runRow->id
+						));
+						break;
+						
+					case "cancel":
+						$db->query(str_queryf(
+							"UPDATE run_useragent
+							SET
+								status = 3,
+								updated = %s
+							WHERE run_id = %u 
+								AND status = 0;",
+							swarmdb_dateformat( SWARM_NOW ),
+							$runRow->id
+						));
+						break;
 				}
 			}
 		}

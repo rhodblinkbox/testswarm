@@ -127,11 +127,12 @@ class JobAction extends Action {
 					// to gather the info from the useragents table
 					$userAgentIDs[] = $runUaRow->useragent_id;
 
-
 					if ( !$runUaRow->results_id ) {
-						$runUaRuns[$runUaRow->useragent_id] = array(
-							'runStatus' => 'new',
-						);
+						if ( (int)$runUaRow->status === 3 ) {
+							$runUaRuns[$runUaRow->useragent_id] = array('runStatus' => 'cancelled' );
+						} else {						
+							$runUaRuns[$runUaRow->useragent_id] = array('runStatus' => 'new'); 
+						}
 					} else {
 						$runresultsRow = $db->getRow(str_queryf(
 							'SELECT

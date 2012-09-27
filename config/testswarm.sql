@@ -168,6 +168,7 @@ CREATE TABLE `run_useragent` (
   -- 0 = idle (awaiting (re-)run)
   -- 1 = busy (being run by a client)
   -- 2 = done (passed and/or reached max)
+  -- 3 = cancelled (do not run)
   `status` tinyint unsigned NOT NULL default 0,
 
   -- Key to runresults.id field.
