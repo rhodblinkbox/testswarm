@@ -69,6 +69,7 @@
 						<span ng-show="myForm.name.$error.required">Required</span>
 					</p>
 					<p><span>Last seen</span> <strong>{{device.lastSeen}}</strong></p>				
+					<p><span>Created</span> <strong>{{device.created.toString()}}</strong></p>				
 				<form>
 			</div>
 			<div class="modal-footer">
@@ -161,6 +162,7 @@
 		this.ip = device.ip;
 		this.browser = device.browser;
 		this.updated = new Date(device.updated * 1000);
+		this.created = new Date(device.created * 1000);
 		this.name = device.name || this.id;
 		
 		var lastSeenSeconds = (now - this.updated) / 1000;

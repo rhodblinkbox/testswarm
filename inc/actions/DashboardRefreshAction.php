@@ -39,6 +39,7 @@ class DashboardRefreshAction extends Action {
 				ip, 
 				useragent_id as browser, 
 				updated,
+				created,
 				device_name as name
 			FROM
 				clients
@@ -59,6 +60,7 @@ class DashboardRefreshAction extends Action {
 						'ip' => $deviceRow->ip,
 						'browser' => $deviceRow->browser,
 						'updated' => strtotime($deviceRow->updated),
+						'created' => strtotime($deviceRow->created),
 						'name' => $deviceRow->name						
 					)
 				);
