@@ -104,6 +104,15 @@ class ResultPage extends Page {
 			. '<tr><th>Status</th><td>'
 				. htmlspecialchars( $data['resultInfo']['status'] )
 			. '</td></tr>'
+			. '<tr><th>Total</th><td>'
+				. htmlspecialchars( $data['resultInfo']['total'] )
+			. '</td></tr>'
+			. '<tr><th>Fail</th><td>'
+				. htmlspecialchars( $data['resultInfo']['fail'] )
+			. '</td></tr>'
+			. '<tr><th>Error</th><td>'
+				. htmlspecialchars( $data['resultInfo']['error'] )
+			. '</td></tr>'
 			. '<tr><th>Started</th><td>'
 				. self::getPrettyDateHtml( $data['resultInfo'], 'started' )
 			. '</td></tr>'
