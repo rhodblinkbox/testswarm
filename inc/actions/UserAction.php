@@ -88,6 +88,7 @@ class UserAction extends Action {
 				"progress",
 				"failed",
 				"timedout",
+				"heartbeat",
 				"error", // highest priority
 			));
 

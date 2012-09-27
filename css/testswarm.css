@@ -139,12 +139,15 @@ table.swarm-results tbody td.swarm-status-passed a {
 }
 
 table.swarm-results tbody td.swarm-status-timedout,
+table.swarm-results tbody td.swarm-status-heartbeat,
 table.swarm-results tbody td.swarm-status-error,
 table.swarm-results tbody td.swarm-status-failed {
 	background: #EFD7D7;
 }
 table.swarm-results tbody td.swarm-status-timedout,
 table.swarm-results tbody td.swarm-status-timedout a,
+table.swarm-results tbody td.swarm-status-heartbeat,
+table.swarm-results tbody td.swarm-status-heartbeat a,
 table.swarm-results tbody td.swarm-status-error,
 table.swarm-results tbody td.swarm-status-error a,
 table.swarm-results tbody td.swarm-status-failed,

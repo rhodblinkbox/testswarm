@@ -209,6 +209,7 @@ CREATE TABLE `runresults` (
   -- 2 = finished
   -- 3 = timed-out (maximum execution time exceeded)
   -- 4 = timed-out (client lost, set from CleanupAction)
+  -- 5 = client heartbeat timeout
   `status` tinyint unsigned NOT NULL default 0,
 
   -- Total number of tests ran.
