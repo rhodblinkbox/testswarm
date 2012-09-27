@@ -13,7 +13,11 @@
 <div id="table" ng-app="dashboard" class="navBarSpacer">
 	<div ng:controller="devicesController">
 		<table class="table table-striped table-hover table-condensed">
-			<caption>{{devices.length}} devices found, updating data in {{secondsToUpdateText()}}...</caption>
+			<caption>
+				<span ng-show="!!devices.length" class="badge badge-default">{{devices.length}} devices found</span>
+				<span ng-show="!!error" class="badge badge-important">Problem getting the latest data!</span>
+				<span class="badge badge-default">updating data in {{secondsToUpdateText()}}...</span>
+			</caption>
 			<thead>
 				<tr class="success">
 					<th>IP address</th>
@@ -137,7 +141,7 @@
 		$scope.$on('edit', function (event, device) {
 			$scope.device = device;
 			$scope.modalShown = true;
-			//$("[rel=tooltip]").tooltip();
+			//$("[rel=tooltip]").tooltip();	// TODO: make this tooltip work
 		});
 		
 		$scope.save = function() {
@@ -146,7 +150,7 @@
 			api.save($scope.device.data(), function() {
 				$scope.saving = false;
 				$scope.close();
-				// TODO: force data refrash in devicesController straight away
+				// TODO: force data refresh in devicesController straight away by raising an event
 			});
 		}	
 
@@ -219,20 +223,25 @@
 		
 		$scope.refresh = function () {
 
-			if ( $scope.secondsToUpdate <= 0 ) {						
+			if ( $scope.secondsToUpdate <= 0 ) {	
+				$scope.error = false;
 				api.query(function(result) {
 					$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
 					
 					var devices = [];
 					
-					for(var i=0; i < result.dashboardRefresh.devices.length; i++) {
+					for(var i = 0; i < result.dashboardRefresh.devices.length; i++) {
 						var device = new Device(result.dashboardRefresh.devices[i], $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold);
 						devices.push(device);
 					}
 					
-					// Find a better way of updating the devices on the scope. Need to update rather than overwrite. Try to find a way to intercept class creation in the resource service.
+					// TODO: Find a better way of updating the devices on the scope. Need to update rather than overwrite. Try to find a way to intercept class creation in the resource service.
 					$scope.devices = devices;
 					$scope.secondsToUpdate = config.refreshInterval;			
+					$timeout( $scope.refresh, 1000 );
+				}, function() {
+					$scope.secondsToUpdate = config.refreshInterval;	
+					$scope.error = true;
 					$timeout( $scope.refresh, 1000 );
 				});				
 			} else {
