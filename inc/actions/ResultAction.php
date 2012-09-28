@@ -149,7 +149,7 @@ class ResultAction extends Action {
 		$mapping[self::$STATE_FINISHED] = 'Finished';
 		$mapping[self::$STATE_ABORTED] = 'Aborted';
 		$mapping[self::$STATE_LOST] = 'Client lost';
-		$mapping[self::$STATE_HEARTBEAT] = 'Heartbeat submission';
+		$mapping[self::$STATE_HEARTBEAT] = 'Timed-out (heartbeat)';
 
 		return isset( $mapping[$statusId] )
 			? $mapping[$statusId]
