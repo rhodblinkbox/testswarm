@@ -67,7 +67,7 @@ class SaverunAction extends Action {
 			$reportHtml = urldecode( $reportHtml );
 		}
 		
-		if ( !in_array( $status, array( 2, 3 ) ) ) {
+		if ( !in_array( $status, array( 2, 3, 5 ) ) ) {
 			$this->setError( 'invalid-input', 'Illegal status to be set from the client side in action=saverun.' );
 			return;
 		}

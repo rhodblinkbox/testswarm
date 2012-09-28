@@ -170,7 +170,7 @@ class ResultPage extends Page {
 			$status = intval( $row->status );
 			// If it finished or was aborted, there should be
 			// a (at least partial) html report.
-			if ( $status === ResultAction::$STATE_FINISHED || $status === ResultAction::$STATE_ABORTED ) {
+			if ( $status === ResultAction::$STATE_FINISHED || $status === ResultAction::$STATE_ABORTED || $status === ResultAction::$STATE_HEARTBEAT ) {
 				if ( $row->report_html ) {
 					header( 'Content-Encoding: gzip' );
 					echo $row->report_html;
