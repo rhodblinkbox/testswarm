@@ -14,7 +14,7 @@
 /*global jQuery, $, QUnit, Test, JSSpec, JsUnitTestManager, SeleniumTestResult, LOG, doh, Screw*/
 /*jshint forin:false, strict:false, loopfunc:true, browser:true, jquery:true*/
 (function (undefined) {
-	var	DEBUG, doPost, search, url, index, submitTimeout, curHeartbeat,
+	var	DEBUG, doPost, search, url, index, submitTimeout, 
 		beatRate, testFrameworks, onErrorFnPrev;
 
 	DEBUG = false;
@@ -167,8 +167,8 @@
 
 		var form, i, input, key, paramItems, parts, query;
 
-		if ( curHeartbeat ) {
-			clearTimeout( curHeartbeat );
+		if ( window.curHeartbeat ) {
+			clearTimeout( window.curHeartbeat );
 		}
 
 		paramItems = (url.split( '?' )[1] || '' ).split( '&' );
@@ -285,6 +285,11 @@
 
 	// Expose the TestSwarm API
 	window.TestSwarm = {
+		result: {
+					fail: 0,
+					error: 0,
+					total: 0
+				},
 		submit: submit,
 		heartbeat: function ( name ) {
 			
@@ -307,7 +312,7 @@
 
 			window.curHeartbeat = setTimeout(function () {
 				log('Heartbeat caused results submission...');
-				submit({ fail: -1, total: -1 });
+				submit({ status: 5, fail: window.TestSwarm.result.fail, total: window.TestSwarm.result.total, error: window.TestSwarm.result.error });
 			}, beatRate * 1000);
 
 		},
@@ -331,7 +336,7 @@
                     {
                         log('Jasmine reportRunnerStarting');
 						// reset counters
-						jasmineTestSwarmResults = {
+						window.TestSwarm.result = jasmineTestSwarmResults = {
 							fail: 0,
 							error: 0,
 							total: 0
@@ -415,7 +420,7 @@
 				angular.scenario.output('angularJsSwarm', function(context, runner, model) {
 				
 					var resetResults = function() {
-						angular.testSwarmResults = {
+						window.TestSwarm.result = angular.testSwarmResults = {
 								fail: 0,
 								error: 0,
 								total: 0
@@ -490,7 +495,7 @@
 				log( 'Installing QUnit support...' );
 				
 				QUnit.done = function ( results ) {
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: results.failed,
 						error: 0,
 						total: results.total
@@ -561,9 +566,6 @@
 			install: function () {
 				var	total_runners = Test.Unit.runners.length,
 					cur_runners = 0,
-					total = 0,
-					fail = 0,
-					error = 0,
 					i;
 
 				for ( i = 0; i < Test.Unit.runners.length; i += 1 ) {
@@ -578,17 +580,13 @@
 							finish.call( this );
 
 							results = this.getResult();
-							total += results.assertions;
-							fail += results.failures;
-							error += results.errors;
+							window.TestSwarm.result.total += results.assertions;
+							window.TestSwarm.result.fail += results.failures;
+							window.TestSwarm.result.error += results.errors;
 
 							cur_runners += 1;
 							if ( cur_runners === total_runners ) {
-								submit({
-									fail: fail,
-									error: error,
-									total: total
-								});
+								submit(window.TestSwarm.result);
 							}
 						};
 					}( i ) );
@@ -615,7 +613,7 @@
 						ul[i].style.display = 'block';
 					}
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: JSSpec.runner.getTotalFailures(),
 						error: JSSpec.runner.getTotalErrors(),
 						total: JSSpec.runner.totalExamples
@@ -648,7 +646,7 @@
 				JsUnitTestManager.prototype._done = function () {
 					_done.call( this );
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: this.failureCount,
 						error: this.errorCount,
 						total: this.totalCount
@@ -670,7 +668,7 @@
 			install: function () {
 				// Completely overwrite the postback
 				SeleniumTestResult.prototype.post = function () {
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: this.metrics.numCommandFailures,
 						error: this.metrics.numCommandErrors,
 						total: this.metrics.numCommandPasses + this.metrics.numCommandFailures + this.metrics.numCommandErrors
@@ -700,7 +698,7 @@
 				doh._report = function () {
 					_report.apply( this, arguments );
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: doh._failureCount,
 						error: doh._errorCount,
 						total: doh._testCount
@@ -723,7 +721,7 @@
 				$(Screw).bind( 'after', function () {
 					var	passed = $( '.passed' ).length,
 						failed = $( '.failed' ).length;
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: failed,
 						error: 0,
 						total: failed + passed
