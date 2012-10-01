@@ -91,6 +91,49 @@
 <script type="text/javascript" src="/testswarm/js/bootstrap-modal.js"></script>
 <script type="text/javascript" src="/testswarm/js/bootstrap-tooltip.js"></script>
 <script type="text/javascript">
+	var arrayHelper = {
+		common: function(a1, a2, compare) {			
+			// find elements in both arrays
+			var results = [];
+			angular.forEach(a1, function( a ) {
+				angular.forEach(a2, function( b ) {
+					if( compare(a, b) ) {
+						results.push( [a, b] );
+					}
+				});
+			});
+			
+			return results;
+		},
+		leftOnly: function(a1, a2, compare) {
+			// find elements only in a1 array
+			var results = [];
+			angular.forEach(a1, function( a ) {
+				var isFound = false;
+				angular.forEach(a2, function( b ) {
+					if( compare(a, b) ) {
+						isFound = true;
+					}
+				});
+				if( !isFound ) {
+					results.push( a );
+				}
+			});
+			
+			return results;						
+		},
+		remove: function( arr, obj ) {
+			var i = arr.length;
+			while( i > 0 ) {
+				i--;
+				if ( arr[i] == obj ) {
+					arr.splice(i, 1);
+					return
+				}
+			}
+		}
+	};
+	
 	function Device (device, now, deviceErrorThreshold, deviceWarningThreshold) {		
 		
 		this.update = function update(device, now) {
@@ -254,45 +297,34 @@
 					
 					api.query(function(result) {
 						$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
+												
+						// convert to array of devices
+						var serverDevices = [];
+						angular.forEach(result.dashboardRefresh.devices, function( data ) {
+							serverDevices.push( new Device( data, $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold ) );
+						});						
 						
-						// iterate through devices just fetched from the server
-						angular.forEach(result.dashboardRefresh.devices, function( data ){
-							var dataDevice = new Device( data, $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold );
-							
-							var isFound = false;
-							
-							// iterate through devices on the scope
-							angular.forEach($scope.devices, function( scopeDevice ){
-								if( scopeDevice.matches( dataDevice ) ) {
-									scopeDevice.update( dataDevice, $scope.serverTime );
-									isFound = true;
-								}								
-							});
-							
-							if( !isFound ) {
-								$scope.devices.push(dataDevice);	
-							}							
+						var compareFn = function compare( a, b ) { return a.matches(b); };
+						
+						// find devices to update
+						var update = arrayHelper.common( serverDevices, $scope.devices, compareFn );
+						angular.forEach( update, function( data ) {
+							var serverDevice = data[0];
+							var clientDevice = data[1];
+							clientDevice.update(serverDevice, $scope.serverTime);
 						});
 						
-						// remove devices no longer present on server from $scope.devices
-						var i = $scope.devices.length;
-						while( i > 0 ) {
-							i--;
-							var scopeDevice = $scope.devices[i];
-							var isFound = false;
+						// find devices to remove
+						var clientOnly = arrayHelper.leftOnly( $scope.devices, serverDevices, compareFn );
+						angular.forEach( clientOnly, function( clientDevice ) {
+							arrayHelper.remove( $scope.devices, clientDevice );
+						});
 						
-							// iterate through devices just fetched from the server
-							angular.forEach(result.dashboardRefresh.devices, function( dataDevice ) {								
-								if ( scopeDevice.matches( dataDevice ) ) {
-									isFound = true;
-								}
-							});
-							
-							if( !isFound ) {
-								// remove scopeDevice from $scope.devices
-								$scope.devices.splice(i, 1);
-							}
-						}
+						// find devices to add
+						var serverOnly = arrayHelper.leftOnly( serverDevices, $scope.devices, compareFn );
+						angular.forEach( serverOnly, function( serverDevice ) {
+							$scope.devices.push( serverDevice );
+						});		
 						
 						$scope.secondsToUpdate = config.refreshInterval;			
 						setupTimeout();
