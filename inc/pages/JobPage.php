@@ -50,6 +50,7 @@ class JobPage extends Page {
 			$html .= '<script>SWARM.jobInfo = ' . json_encode( $data["jobInfo"] ) . ';</script>'
 				. '<div class="form-actions">'
 				. ' <button id="swarm-job-delete" class="btn btn-danger">Delete job</button>'
+				. ' <button id="swarm-job-cancel" class="btn btn-warning">Cancel job</button>'
 				. ' <button id="swarm-job-reset" class="btn btn-info">Reset job</button>'
 				. '</div>'
 				. '<div class="alert alert-error" id="swarm-wipejob-error" style="display: none;"></div>';

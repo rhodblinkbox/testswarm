@@ -127,11 +127,12 @@ class JobAction extends Action {
 					// to gather the info from the useragents table
 					$userAgentIDs[] = $runUaRow->useragent_id;
 
-
 					if ( !$runUaRow->results_id ) {
-						$runUaRuns[$runUaRow->useragent_id] = array(
-							'runStatus' => 'new',
-						);
+						if ( (int)$runUaRow->status === 3 ) {
+							$runUaRuns[$runUaRow->useragent_id] = array('runStatus' => 'cancelled' );
+						} else {						
+							$runUaRuns[$runUaRow->useragent_id] = array('runStatus' => 'new'); 
+						}
 					} else {
 						$runresultsRow = $db->getRow(str_queryf(
 							'SELECT
@@ -209,24 +210,30 @@ class JobAction extends Action {
 
 	/**
 	 * @param $row object: Database row from runresults.
-	 * @return string: One of 'progress', 'timedout', 'passed', 'failed' or 'error'.
+	 * @return string: One of 'progress', 'timedout', 'heartbeat', 'passed', 'failed' or 'error'.
 	 */
 	public static function getRunresultsStatus( $row ) {
 		$status = (int)$row->status;
-		if ( $status === 1 ) {
-			return 'progress';
-		}
-		if ( $status === 2 ) {
-			// A total of 0 tests ran is also considered an error
-			if ( $row->error > 0 || intval( $row->total ) === 0 ) {
-				return 'error';
-			}
-			// Passed or failed
-			return $row->fail > 0 ? 'failed' : 'passed';
-		}
-		if ( $status === 3 ) {
-			return 'timedout';
-		}
-		throw new SwarmException( 'Corrupt useragent run result.' );
+		switch( $status ) {
+			case 1:
+				return 'progress';
+			case 2:
+				// A total of 0 tests ran is also considered an error
+				//if ( $row->error > 0 || intval( $row->total ) === 0 ) {
+
+				// BLINKBOX NOTE: we might have few tests where total might be equal to 0 and it should be considered as success
+				if ( $row->error > 0 ) {
+					return 'error';
+				}
+				// Passed or failed
+				return $row->fail > 0 ? 'failed' : 'passed';
+			case 3:
+				return 'timedout';
+			case 5:
+				return 'heartbeat';
+			default:
+				throw new SwarmException( 'Corrupt useragent run result.' );
+		
+		}		
 	}
 }

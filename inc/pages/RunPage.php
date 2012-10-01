@@ -26,6 +26,8 @@ class RunPage extends Page {
 
 		$this->setTitle( "Test runner" );
 		$this->displayPageTitle = false;
+		$this->displayNavBar = false;
+		$this->useContainerCssClass = true;
 		$this->bodyScripts[] = swarmpath( "js/run.js?" . time() );
 
 		$client = null;
@@ -50,6 +52,7 @@ class RunPage extends Page {
 		$html = '<script>'
 			. 'SWARM.client_id = ' . json_encode( $clientId ) . ';'
 			. 'SWARM.run_token = ' . json_encode( $runToken ) . ';'
+			. 'SWARM.decode_html = ' . json_encode ( isMaple() ) . ';'
 			. '</script>';
 
 		$html .=
@@ -61,6 +64,8 @@ class RunPage extends Page {
 						. '" alt="' . htmlspecialchars( $uaItem->displaytitle )
 						. '" title="' . htmlspecialchars( $uaItem->displaytitle ) . '">'
 					. '<span class="label">' . htmlspecialchars( $uaItem->displaytitle ) . '</span>'
+					. '<br/>'
+					. '<span class="label label-info" id="deviceName"></span>'
 					. '</div>'
 				. '</div>'
 				. '<div class="span7">'

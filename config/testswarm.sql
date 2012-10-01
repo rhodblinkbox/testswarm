@@ -50,6 +50,9 @@ CREATE TABLE `clients` (
   -- Key to useragents.ini section.
   `useragent_id` varchar(255) NOT NULL default '',
 
+  -- Device name.
+  `device_name` varchar(255) NULL,
+
   -- Raw User-Agent string.
   `useragent` tinytext NOT NULL,
 
@@ -165,6 +168,7 @@ CREATE TABLE `run_useragent` (
   -- 0 = idle (awaiting (re-)run)
   -- 1 = busy (being run by a client)
   -- 2 = done (passed and/or reached max)
+  -- 3 = cancelled (do not run)
   `status` tinyint unsigned NOT NULL default 0,
 
   -- Key to runresults.id field.
@@ -206,6 +210,7 @@ CREATE TABLE `runresults` (
   -- 2 = finished
   -- 3 = timed-out (maximum execution time exceeded)
   -- 4 = timed-out (client lost, set from CleanupAction)
+  -- 5 = timed-out (client heartbeat timeout)
   `status` tinyint unsigned NOT NULL default 0,
 
   -- Total number of tests ran.
@@ -225,6 +230,9 @@ CREATE TABLE `runresults` (
   -- insertions (otherwise the only ID is the auto incrementing ID, which is
   -- easy to fake).
   `store_token` binary(40) NOT NULL default '',
+
+  -- YYYYMMDDHHMMSS timestamp. update is expected to be before this timestamp.
+  `expected_update` binary(14) NULL,
 
   -- YYYYMMDDHHMMSS timestamp.
   `updated` binary(14) NOT NULL,

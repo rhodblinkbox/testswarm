@@ -1,0 +1,18 @@
+
+#loggerWrapper {
+	background-color: #eee;
+}
+
+#logger .group {
+	background-color: darkslategray;
+	color: #eee;
+}
+
+#logger .test {
+	background-color: cornflowerblue;
+	color: #eee;
+}
+
+#logger .run {
+	background-color: seashell;
+}

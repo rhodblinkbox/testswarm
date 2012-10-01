@@ -23,6 +23,9 @@ class ResultAction extends Action {
 	// Client did not submit results, and from CleanAction it
 	// was determined that the client died (no longer sends pings).
 	public static $STATE_LOST = 4;
+	
+	// Client has hit the heartbeat timeout and all the results were submitted.
+	public static $STATE_HEARTBEAT = 5;
 
 	/**
 	 * @actionParam int item: Runresults ID.
@@ -39,6 +42,9 @@ class ResultAction extends Action {
 				run_id,
 				client_id,
 				status,
+				error,
+				total,
+				fail,
 				updated,
 				created
 			FROM runresults
@@ -88,7 +94,8 @@ class ResultAction extends Action {
 				id,
 				user_id,
 				useragent_id,
-				useragent
+				useragent,
+				device_name
 			FROM clients
 			WHERE id = %u;',
 			$row->client_id
@@ -106,6 +113,7 @@ class ResultAction extends Action {
 			'id' => $clientRow->id,
 			'uaID' => $clientRow->useragent_id,
 			'userAgent' => $clientRow->useragent,
+			'deviceName' => $clientRow->device_name,
 			'userID' => $userRow->id,
 			'userName' => $userRow->name,
 			'userUrl' => swarmpath( 'user/' . $userRow->name ),
@@ -114,6 +122,9 @@ class ResultAction extends Action {
 		$data['resultInfo'] = array(
 			'id' => $resultsID,
 			'runID' => $row->run_id,
+			'fail' => $row->fail,
+			'total' => $row->total,
+			'error' => $row->error,
 			'clientID' => $row->client_id,
 			'status' => self::getStatus( $row->status ),
 		);
@@ -138,6 +149,7 @@ class ResultAction extends Action {
 		$mapping[self::$STATE_FINISHED] = 'Finished';
 		$mapping[self::$STATE_ABORTED] = 'Aborted';
 		$mapping[self::$STATE_LOST] = 'Client lost';
+		$mapping[self::$STATE_HEARTBEAT] = 'Timed-out (heartbeat)';
 
 		return isset( $mapping[$statusId] )
 			? $mapping[$statusId]

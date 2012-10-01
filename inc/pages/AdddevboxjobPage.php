@@ -20,6 +20,7 @@ class AdddevboxjobPage extends Page {
 	}
 
 	protected function initContent() {
+	
 		$request = $this->getContext()->getRequest();	
 		
 		$this->setTitle( "Job name" );
@@ -40,6 +41,7 @@ class AdddevboxjobPage extends Page {
 
 		$error = $this->getAction()->getError();
 		$data = $this->getAction()->getData();
+				
 		if ( $request->wasPosted() ) {
 			if ( $error ) {
 				$html .= html_tag( "div", array( "class" => "alert alert-error" ), $error["info"] );
@@ -53,6 +55,11 @@ class AdddevboxjobPage extends Page {
 					. '">continue to job page &raquo;</a>'
 					. '</div>';
 			}
+		}
+		
+		if ($data && isset( $data["id"] ) ) {
+			$jobId = $data["id"];
+			header( "X-TestSwarm-JobId: $jobId", true );
 		}
 		
 		$html .= $this->getAddjobFormHtml();

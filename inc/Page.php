@@ -42,6 +42,8 @@ abstract class Page {
 	protected $subTitle;
 	protected $content;
 	protected $displayPageTitle = true;
+	protected $displayNavBar = true;
+	protected $useContainerCssClass = true;
 	
 	/**
 	 * The execution method is where a Page invokes the main
@@ -199,8 +201,8 @@ abstract class Page {
 	$displayTitleHtml = $this->getDisplayTitleHtml();
 ?>
 	<title><?php echo htmlentities( $htmlTitle ); ?></title>
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/bootstrap.min.css' ); ?>">
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/testswarm.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/bootstrapsamsung.css' ) : swarmpath( 'css/bootstrap.min.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/testswarmsamsung.css' ) : swarmpath( 'css/testswarm.css' ); ?>">
 	<script src="<?php echo swarmpath( 'js/jquery.js' ); ?>"></script>
 	<script src="<?php echo swarmpath( 'js/bootstrap-dropdown.js' ); ?>"></script>
 	<script>window.SWARM = <?php
@@ -219,6 +221,9 @@ abstract class Page {
 ?>
 </head>
 <body>
+<?php
+	if ( $this->displayNavBar ) {
+?>	
 	<div class="navbar navbar-fixed-top">
 		<div class="navbar-inner">
 			<div class="container">
@@ -247,6 +252,7 @@ foreach ( $projects as $project ) {
 							</ul>
 						</li>
 						<li><a href="<?php echo swarmpath( 'scores' ); ?>">Scores</a></li>
+						<li><a href="<?php echo swarmpath( 'dashboard' ); ?>#table">Dashboard</a></li>
 						<li><a href="<?php echo swarmpath( 'info' ); ?>">Info</a></li>
 					</ul>
 					<ul class="nav pull-right">
@@ -270,20 +276,24 @@ foreach ( $projects as $project ) {
 			</div>
 		</div>
 	</div>
-
+<?php
+}
+if ( $this->useContainerCssClass ) {
+?>
 	<div class="container">
 <?php
+} else {
+?>
+	<div>
+<?php
+}
 	if ( $this->displayPageTitle ) {
 ?>
 		<div class="hero-unit">
 			<h1><?php echo $displayTitleHtml; ?></h1>
 		</div>
 <?php
-	} else {
-?>
-		<div class="hero-unit"></div>
-<?php
-	}
+	} 
 	echo $this->getContent();
 ?>
 
@@ -347,8 +357,8 @@ foreach ( $projects as $project ) {
 		. ' - '
 		. $this->getContext()->getConf()->web->title
 	); ?></title>
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/bootstrap.min.css' ); ?>">
-	<link rel="stylesheet" href="<?php echo swarmpath( 'css/testswarm.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/bootstrapsamsung.css' ) : swarmpath( 'css/bootstrap.min.css' ); ?>">
+	<link rel="stylesheet" href="<?php echo isMaple () ? swarmpath( 'css/testswarmsamsung.css' ) : swarmpath( 'css/testswarm.css' ); ?>">
 </head>
 <body>
 <div class="hero-unit">
