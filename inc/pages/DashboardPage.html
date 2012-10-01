@@ -15,6 +15,7 @@
 		<table class="table table-striped table-hover table-condensed">
 			<caption>
 				<span ng-show="!!devices.length" class="badge badge-default">{{devices.length}} devices found</span>
+				<span ng-show="!!devices.length" class="badge badge-default">{{getActiveDevicesCount()}} active</span>				
 				<span ng-show="!!error" class="badge badge-important">Problem getting the latest data!</span>
 				<span class="badge badge-default">updating data in {{secondsToUpdateText()}}...</span>
 			</caption>
@@ -256,6 +257,22 @@
 		
 		$scope.edit = function (device) {
 			$scope.$root.$broadcast('edit', angular.copy(device)); 
+		}
+		
+		$scope.getActiveDevicesCount = function () {
+			var counter = 0;
+			if ( !$scope.devices ) {
+				return counter;
+			}
+			
+			for(var i = 0; i < $scope.devices.length; i++) {
+				var device = $scope.devices[i];
+				if( !device.lastSeenError && !device.lastSeenWarning ) {
+					counter++;
+				}
+			}					
+
+			return counter;
 		}
 		
 		$scope.refresh();
