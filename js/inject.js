@@ -14,8 +14,8 @@
 /*global jQuery, $, QUnit, Test, JSSpec, JsUnitTestManager, SeleniumTestResult, LOG, doh, Screw*/
 /*jshint forin:false, strict:false, loopfunc:true, browser:true, jquery:true*/
 (function (undefined) {
-	var	DEBUG, doPost, search, url, index, submitTimeout, curHeartbeat,
-		beatRate, testFrameworks, onErrorFnPrev;
+	var	DEBUG, doPost, search, url, index, submitTimeout, 
+		beatRate, defaultBeatRate, testFrameworks, onErrorFnPrev;
 
 	DEBUG = false;
 
@@ -23,7 +23,7 @@
 	search = window.location.search;
 	index = search.indexOf( 'swarmURL=' );
 	submitTimeout = 5;
-	beatRate = 20;
+	defaultBeatRate = beatRate = 20;
 	try {
 		doPost = !!window.parent.postMessage;
 	} catch ( e ) {}
@@ -161,17 +161,40 @@
 	
 		return logger;		
 	}	
-
-	function submit( params ) {
-		log('Submitting runner results...');	
-
-		var form, i, input, key, paramItems, parts, query;
-
-		if ( curHeartbeat ) {
-			clearTimeout( curHeartbeat );
+	
+	function objectToQuerystring( params ) {
+		var query = '';
+		
+		for ( key in params ) {
+			query += ( query ? '&' : '' ) + key + '=' + encodeURIComponent( params[key] );
 		}
-
-		paramItems = (url.split( '?' )[1] || '' ).split( '&' );
+		
+		return query;
+	}
+	
+	function specStart() {
+		var params = {
+			fail: angular.testSwarmResults.fail,
+			error: angular.testSwarmResults.error,
+			total: angular.testSwarmResults.total,
+			beatRate: beatRate,
+			action: 'runner',
+			type: 'specStart'
+		};
+	
+		params = extendParams( params );
+		var url = baseUrl + 'api.php?' + objectToQuerystring( params );
+				
+		log('spec Start ... ' + url);	
+		var img = new Image();
+		// TODO: use onLoad event
+		//img.onLoad = function () { };
+		img.src = url;
+	}
+	
+	// Extend params by querystring parameters.
+	function extendParams( params ) {
+		var parts, paramItems = (url.split( '?' )[1] || '' ).split( '&' );
 
 		for ( i = 0; i < paramItems.length; i += 1 ) {
 			if ( paramItems[i] ) {
@@ -181,6 +204,20 @@
 				}
 			}
 		}
+		
+		return params;
+	}
+		
+	function submit( params ) {
+		log('Submitting runner results...');	
+
+		var form, i, input, key;
+
+		if ( window.curHeartbeat ) {
+			clearTimeout( window.curHeartbeat );
+		}
+
+		params = extendParams( params );
 
 		if ( !params.action ) {
 			params.action = 'saverun';
@@ -202,14 +239,8 @@
 		}
 
 		if ( doPost ) {
-			// Build Query String
-			query = '';
-
-			for ( key in params ) {
-				query += ( query ? '&' : '' ) + key + '=' + encodeURIComponent( params[key] );
-			}
-
 			if ( !DEBUG ) {
+				var query = objectToQuerystring( params );
 				window.parent.postMessage( query, '*' );
 				log('Message posted');
 			}
@@ -285,6 +316,11 @@
 
 	// Expose the TestSwarm API
 	window.TestSwarm = {
+		result: {
+					fail: 0,
+					error: 0,
+					total: 0
+				},
 		submit: submit,
 		heartbeat: function ( name ) {
 			
@@ -307,7 +343,7 @@
 
 			window.curHeartbeat = setTimeout(function () {
 				log('Heartbeat caused results submission...');
-				submit({ fail: -1, total: -1 });
+				submit({ status: 5, fail: window.TestSwarm.result.fail, total: window.TestSwarm.result.total, error: window.TestSwarm.result.error });
 			}, beatRate * 1000);
 
 		},
@@ -331,7 +367,7 @@
                     {
                         log('Jasmine reportRunnerStarting');
 						// reset counters
-						jasmineTestSwarmResults = {
+						window.TestSwarm.result = jasmineTestSwarmResults = {
 							fail: 0,
 							error: 0,
 							total: 0
@@ -415,7 +451,7 @@
 				angular.scenario.output('angularJsSwarm', function(context, runner, model) {
 				
 					var resetResults = function() {
-						angular.testSwarmResults = {
+						window.TestSwarm.result = angular.testSwarmResults = {
 								fail: 0,
 								error: 0,
 								total: 0
@@ -427,6 +463,10 @@
 					model.on('SpecBegin', function(spec) {
 						log('Spec Begin: ' + spec.name);
 						angular.testSwarmResults.total++;
+						
+						// override beatRate with expected test duration. spec.duration is not implemented yet, value should come from the test.
+						beatRate = spec.duration || defaultBeatRate;
+						specStart();						
 						window.TestSwarm.heartbeat();	// we are still alive, trigger heartbeat so test execution won't time out
 					});
 					
@@ -490,7 +530,7 @@
 				log( 'Installing QUnit support...' );
 				
 				QUnit.done = function ( results ) {
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: results.failed,
 						error: 0,
 						total: results.total
@@ -561,9 +601,6 @@
 			install: function () {
 				var	total_runners = Test.Unit.runners.length,
 					cur_runners = 0,
-					total = 0,
-					fail = 0,
-					error = 0,
 					i;
 
 				for ( i = 0; i < Test.Unit.runners.length; i += 1 ) {
@@ -578,17 +615,13 @@
 							finish.call( this );
 
 							results = this.getResult();
-							total += results.assertions;
-							fail += results.failures;
-							error += results.errors;
+							window.TestSwarm.result.total += results.assertions;
+							window.TestSwarm.result.fail += results.failures;
+							window.TestSwarm.result.error += results.errors;
 
 							cur_runners += 1;
 							if ( cur_runners === total_runners ) {
-								submit({
-									fail: fail,
-									error: error,
-									total: total
-								});
+								submit(window.TestSwarm.result);
 							}
 						};
 					}( i ) );
@@ -615,7 +648,7 @@
 						ul[i].style.display = 'block';
 					}
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: JSSpec.runner.getTotalFailures(),
 						error: JSSpec.runner.getTotalErrors(),
 						total: JSSpec.runner.totalExamples
@@ -648,7 +681,7 @@
 				JsUnitTestManager.prototype._done = function () {
 					_done.call( this );
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: this.failureCount,
 						error: this.errorCount,
 						total: this.totalCount
@@ -670,7 +703,7 @@
 			install: function () {
 				// Completely overwrite the postback
 				SeleniumTestResult.prototype.post = function () {
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: this.metrics.numCommandFailures,
 						error: this.metrics.numCommandErrors,
 						total: this.metrics.numCommandPasses + this.metrics.numCommandFailures + this.metrics.numCommandErrors
@@ -700,7 +733,7 @@
 				doh._report = function () {
 					_report.apply( this, arguments );
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: doh._failureCount,
 						error: doh._errorCount,
 						total: doh._testCount
@@ -723,7 +756,7 @@
 				$(Screw).bind( 'after', function () {
 					var	passed = $( '.passed' ).length,
 						failed = $( '.failed' ).length;
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: failed,
 						error: 0,
 						total: failed + passed

@@ -231,6 +231,9 @@ CREATE TABLE `runresults` (
   -- easy to fake).
   `store_token` binary(40) NOT NULL default '',
 
+  -- YYYYMMDDHHMMSS timestamp. update is expected to be before this timestamp.
+  `expected_update` binary(14) NULL,
+
   -- YYYYMMDDHHMMSS timestamp.
   `updated` binary(14) NOT NULL,
 

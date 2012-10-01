@@ -128,8 +128,25 @@
 		$( 'iframe' ).remove();
 	}
 
+	function timeoutCheck( runInfo ) {
+		// if test really timed out? check database
+		retrySend( { action: 'runner', run_id: currRunId, type: 'timeoutCheck' }, function () {
+			log('run.js: timeoutCheck(): retry');
+			timeoutCheck( runInfo );
+		}, function ( data ) {
+			if ( data.runner.testTimedout === 'true' ) {
+				log('run.js: timeoutCheck(): true');
+				testTimedout( runInfo );
+			} else {
+				log('run.js: timeoutCheck(): false');
+				setupTestTimeout( runInfo );
+			}		
+		});
+	}
+	
 	function testTimedout( runInfo ) {
-		log('run.js: testTimedout(): hello');
+		log('run.js: testTimedout()');
+		
 		cancelTest();
 		retrySend(
 			{
@@ -160,7 +177,14 @@
 			}
 		);
 	}
-
+	
+	function setupTestTimeout( runInfo ) {
+		// Timeout after a period of time
+		testTimeout = setTimeout( function () {
+			timeoutCheck( runInfo );
+		}, SWARM.conf.client.runTimeout * 1000 );
+	}
+	
 	/**
 	 * @param data Object: Reponse from api.php?action=getrun
 	 */
@@ -211,10 +235,7 @@
 
 				$( '#iframes' ).append( iframe );
 
-				// Timeout after a period of time
-				testTimeout = setTimeout( function () {
-					testTimedout( runInfo );
-				}, SWARM.conf.client.runTimeout * 1000 );
+				setupTestTimeout( runInfo );
 
 				return;
 			}
