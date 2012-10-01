@@ -70,7 +70,7 @@ class DashboardRefreshAction extends Action {
 		// Start of response data
 		$respData = array(
 			'devices' => $devices,
-			'serverTime' => time()//date('Y-m-d H:i:s')
+			'serverTime' => time()
 		);
 
 		// Save data
