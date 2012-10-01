@@ -91,77 +91,6 @@
 <script type="text/javascript" src="/testswarm/js/bootstrap-modal.js"></script>
 <script type="text/javascript" src="/testswarm/js/bootstrap-tooltip.js"></script>
 <script type="text/javascript">
-	angular
-		.module('dashboard', [ 'ngResource', 'ui' ])
-		.factory('config', [function () {
-			/// <summary>Gets all query string parameters and returns them as an array.</summary>
-			function getQueryStringParams()
-			{
-				var vars = [], hash;
-				var q = document.URL.split('?')[1];
-				if (q != undefined)
-				{
-					q = q.split('&');
-					for (var i = 0; i < q.length; i++)
-					{
-						hash = q[i].split('=');
-						vars.push(hash[1]);
-						vars[hash[0]] = hash[1];
-					}
-				}
-
-				return vars;
-			}
-			
-			var params = getQueryStringParams();
-			
-			var config = { 
-				deviceWarningThreshold: params['deviceWarningThreshold'] || window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
-				deviceErrorThreshold: params['deviceErrorThreshold'] || 60 * 60,
-				deviceTooOldThreshold: params['deviceTooOldThreshold'] || 60 * 60 * 24 * 15,	// consider devices older than 15 days as not relevant
-				refreshInterval: params['refreshInterval'] || 5
-			};
-			
-			return config;
-		}])
-		.factory('api', ['$resource', 'config', function ($resource, config) {
-			return $resource('api.php', { }, { 
-				'query': { method: 'POST', params: { deviceTooOldThreshold: config.deviceTooOldThreshold, action: 'dashboardRefresh' } },
-				'save': { method: 'POST', params: { action: 'setDeviceName' } }
-			});
-		}]);
-		
-	function configController($scope, config) {
-	   $scope.deviceWarningThreshold = config.deviceWarningThreshold;
-	   $scope.deviceErrorThreshold = config.deviceErrorThreshold;	   
-	   $scope.deviceTooOldThreshold = config.deviceTooOldThreshold;
-	   $scope.refreshInterval = config.refreshInterval;
-	}
-	
-	function editController($scope, api) {
-		$scope.$on('edit', function (event, device) {
-			$scope.device = device;
-			$scope.modalShown = true;
-			//$("[rel=tooltip]").tooltip();	// TODO: make this tooltip work
-		});
-		
-		$scope.save = function() {
-			$scope.saving = true;
-			
-			api.save($scope.device.data(), function() {
-				$scope.saving = false;
-				$scope.close();
-				// TODO: force data refresh in devicesController straight away by raising an event
-			});
-		}	
-
-		$scope.close = function() {
-			$scope.modalShown = false;
-			$scope.device = null;
-		}
-	}
-	
-	// Device class
 	function Device (device, now, deviceErrorThreshold, deviceWarningThreshold) {
 		this.id = parseInt(device.id);
 		this.ip = device.ip;
@@ -218,63 +147,150 @@
 			return result.join(' ');
 		}
 	}
-		
-	function devicesController($scope, $timeout, api, config) {
-		$scope.secondsToUpdate = 0;
-		
-		$scope.refresh = function () {
-
-			if ( $scope.secondsToUpdate <= 0 ) {	
-				$scope.error = false;
-				api.query(function(result) {
-					$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
-					
-					var devices = [];
-					
-					for(var i = 0; i < result.dashboardRefresh.devices.length; i++) {
-						var device = new Device(result.dashboardRefresh.devices[i], $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold);
-						devices.push(device);
+	
+	angular
+		.module('dashboard', [ 'ngResource', 'ui' ])
+		.factory('config', [function () {
+			/// <summary>Gets all query string parameters and returns them as an array.</summary>
+			function getQueryStringParams()
+			{
+				var vars = [], hash;
+				var q = document.URL.split('?')[1];
+				if (q != undefined)
+				{
+					q = q.split('&');
+					for (var i = 0; i < q.length; i++)
+					{
+						hash = q[i].split('=');
+						vars.push(hash[1]);
+						vars[hash[0]] = hash[1];
 					}
-					
-					// TODO: Find a better way of updating the devices on the scope. Need to update rather than overwrite. Try to find a way to intercept class creation in the resource service.
-					$scope.devices = devices;
-					$scope.secondsToUpdate = config.refreshInterval;			
-					$timeout( $scope.refresh, 1000 );
-				}, function() {
-					$scope.secondsToUpdate = config.refreshInterval;	
-					$scope.error = true;
-					$timeout( $scope.refresh, 1000 );
-				});				
-			} else {
-				$scope.secondsToUpdate--;
-				$timeout( $scope.refresh, 1000 );
+				}
+
+				return vars;
 			}
-		}
+			
+			var params = getQueryStringParams();
+			
+			var config = { 
+				deviceWarningThreshold: params['deviceWarningThreshold'] || window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
+				deviceErrorThreshold: params['deviceErrorThreshold'] || 60 * 60,
+				deviceTooOldThreshold: params['deviceTooOldThreshold'] || 60 * 60 * 24 * 15,	// consider devices older than 15 days as not relevant
+				refreshInterval: params['refreshInterval'] || 5
+			};
+			
+			return config;
+		}])
+		.factory('api', ['$resource', 'config', function ($resource, config) {
+			return $resource('api.php', { }, { 
+				'query': { method: 'POST', params: { deviceTooOldThreshold: config.deviceTooOldThreshold, action: 'dashboardRefresh' } },
+				'save': { method: 'POST', params: { action: 'setDeviceName' } }
+			});
+		}])
+		.factory('events', [ '$rootScope', function ( $rootScope ) {
+			return {
+				edit: function ( device ) {
+					$rootScope.$broadcast('edit', device); 
+				},
+				refresh: function ( forceReload ) {
+					$rootScope.$broadcast('reloadDevices', forceReload); 
+				}
+			};
+		}])
+		.controller('configController', ['$scope', 'config', function configController($scope, config) {
+		   $scope.deviceWarningThreshold = config.deviceWarningThreshold;
+		   $scope.deviceErrorThreshold = config.deviceErrorThreshold;	   
+		   $scope.deviceTooOldThreshold = config.deviceTooOldThreshold;
+		   $scope.refreshInterval = config.refreshInterval;
+		}])
+		.controller('editController', ['$scope', 'api', 'events', function editController($scope, api, events) {
+			$scope.$on('edit', function (event, device) {
+				$scope.device = device;
+				$scope.modalShown = true;
+				//$("[rel=tooltip]").tooltip();	// TODO: make this tooltip work
+			});
+			
+			$scope.save = function() {
+				$scope.saving = true;
+				
+				api.save($scope.device.data(), function() {
+					$scope.saving = false;
+					$scope.close();
+					events.refresh( true ); // force data refresh in devicesController straight away by raising an event
+				});
+			}	
+
+			$scope.close = function() {
+				$scope.modalShown = false;
+				$scope.device = null;
+			}
+		}])
+		.controller('devicesController', ['$scope', '$timeout', 'api', 'config', 'events', function devicesController($scope, $timeout, api, config, events) {
+			$scope.secondsToUpdate = -1;
 		
-		$scope.secondsToUpdateText = function () {
-			return $scope.secondsToUpdate <= 0 ? 'in progress' : $scope.secondsToUpdate + 's';
-		}
-		
-		$scope.edit = function (device) {
-			$scope.$root.$broadcast('edit', angular.copy(device)); 
-		}
-		
-		$scope.getActiveDevicesCount = function () {
-			var counter = 0;
-			if ( !$scope.devices ) {
+			$scope.$on('reloadDevices', function (event, forceReload) {
+			
+				var setupTimeout = function () {
+					$scope.reloadDevicesTimeoutPromise = $timeout( function() { events.refresh( false ); }, 1000 );
+				};
+			
+				if ( $scope.reloadDevicesTimeoutPromise ) {
+					$timeout.cancel($scope.reloadDevicesTimeoutPromise);
+				}
+				
+				if ( forceReload || $scope.secondsToUpdate < 1 ) {	
+					$scope.secondsToUpdate = -1;
+					$scope.error = false;
+					
+					api.query(function(result) {
+						$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
+						
+						var devices = [];
+						
+						for(var i = 0; i < result.dashboardRefresh.devices.length; i++) {
+							var device = new Device(result.dashboardRefresh.devices[i], $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold);
+							devices.push(device);
+						}
+						
+						// TODO: Find a better way of updating the devices on the scope. Need to update rather than overwrite. Try to find a way to intercept class creation in the resource service.
+						$scope.devices = devices;
+						$scope.secondsToUpdate = config.refreshInterval;			
+						setupTimeout();
+					}, function() {
+						$scope.secondsToUpdate = config.refreshInterval;	
+						$scope.error = true;
+						setupTimeout();
+					});				
+				} else {
+					$scope.secondsToUpdate--;
+					setupTimeout();
+				}
+			});
+			
+			$scope.secondsToUpdateText = function () {
+				return $scope.secondsToUpdate < 0 ? 'in progress' : $scope.secondsToUpdate + 's';
+			}
+			
+			$scope.edit = function (device) {
+				events.edit( angular.copy(device) );
+			}
+			
+			$scope.getActiveDevicesCount = function () {
+				var counter = 0;
+				if ( !$scope.devices ) {
+					return counter;
+				}
+				
+				for(var i = 0; i < $scope.devices.length; i++) {
+					var device = $scope.devices[i];
+					if( !device.lastSeenError && !device.lastSeenWarning ) {
+						counter++;
+					}
+				}					
+
 				return counter;
 			}
 			
-			for(var i = 0; i < $scope.devices.length; i++) {
-				var device = $scope.devices[i];
-				if( !device.lastSeenError && !device.lastSeenWarning ) {
-					counter++;
-				}
-			}					
-
-			return counter;
-		}
-		
-		$scope.refresh();
-	}
+			events.refresh( true );
+		}]);
 </script>
