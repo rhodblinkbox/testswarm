@@ -29,7 +29,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="device in devices" ng-class="{error: device.lastSeenError, warning: device.lastSeenWarning}">
+				<tr ng-repeat="device in devices | orderBy:'updated':true" ng-class="{error: device.lastSeenError, warning: device.lastSeenWarning}">
 					<td>{{device.ip}}</td>
 					<td>{{device.browser}}</td>
 					<td>{{device.name}}</td>
@@ -91,25 +91,31 @@
 <script type="text/javascript" src="/testswarm/js/bootstrap-modal.js"></script>
 <script type="text/javascript" src="/testswarm/js/bootstrap-tooltip.js"></script>
 <script type="text/javascript">
-	function Device (device, now, deviceErrorThreshold, deviceWarningThreshold) {
-		this.id = parseInt(device.id);
-		this.ip = device.ip;
-		this.browser = device.browser;
-		this.updated = new Date(device.updated * 1000);
-		this.created = new Date(device.created * 1000);
-		this.name = device.name || this.id;
+	function Device (device, now, deviceErrorThreshold, deviceWarningThreshold) {		
 		
-		var lastSeenSeconds = (now - this.updated) / 1000;
-		this.lastSeen = getLastSeenText(lastSeenSeconds);
-		this.lastSeenError = lastSeenSeconds > deviceErrorThreshold;
-		this.lastSeenWarning = !this.lastSeenError && lastSeenSeconds > deviceWarningThreshold;			
+		this.update = function update(device, now) {
+			this.ip = device.ip;
+			this.browser = device.browser;
+			this.updated = device instanceof Device ? device.updated : new Date(device.updated * 1000);
+			this.created = device instanceof Device ? device.created : new Date(device.created * 1000);
+			this.name = device.name || this.id;
+			
+			var lastSeenSeconds = (now - this.updated) / 1000;
+			this.lastSeen = getLastSeenText(lastSeenSeconds);
+			this.lastSeenError = lastSeenSeconds > deviceErrorThreshold;
+			this.lastSeenWarning = !this.lastSeenError && lastSeenSeconds > deviceWarningThreshold;		
+		}
 		
-		this.data = function() {
+		this.matches = function matches( device ) {
+			return this.id == device.id;
+		}
+		
+		this.serialize = function serialize() {
 			return {
 				id: this.id,
 				name: this.name
 			}
-		}
+		}		
 		
 		function getLastSeenText(seconds) {
 			var daysDifference = Math.floor(seconds/60/60/24);
@@ -146,6 +152,9 @@
 			
 			return result.join(' ');
 		}
+		
+		this.id = parseInt( device.id );			
+		this.update( device, now );		
 	}
 	
 	angular
@@ -213,7 +222,7 @@
 			$scope.save = function() {
 				$scope.saving = true;
 				
-				api.save($scope.device.data(), function() {
+				api.save($scope.device.serialize(), function() {
 					$scope.saving = false;
 					$scope.close();
 					events.refresh( true ); // force data refresh in devicesController straight away by raising an event
@@ -227,7 +236,8 @@
 		}])
 		.controller('devicesController', ['$scope', '$timeout', 'api', 'config', 'events', function devicesController($scope, $timeout, api, config, events) {
 			$scope.secondsToUpdate = -1;
-		
+			$scope.devices = [];
+			
 			$scope.$on('reloadDevices', function (event, forceReload) {
 			
 				var setupTimeout = function () {
@@ -245,15 +255,45 @@
 					api.query(function(result) {
 						$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
 						
-						var devices = [];
+						// iterate through devices just fetched from the server
+						angular.forEach(result.dashboardRefresh.devices, function( data ){
+							var dataDevice = new Device( data, $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold );
+							
+							var isFound = false;
+							
+							// iterate through devices on the scope
+							angular.forEach($scope.devices, function( scopeDevice ){
+								if( scopeDevice.matches( dataDevice ) ) {
+									scopeDevice.update( dataDevice, $scope.serverTime );
+									isFound = true;
+								}								
+							});
+							
+							if( !isFound ) {
+								$scope.devices.push(dataDevice);	
+							}							
+						});
 						
-						for(var i = 0; i < result.dashboardRefresh.devices.length; i++) {
-							var device = new Device(result.dashboardRefresh.devices[i], $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold);
-							devices.push(device);
+						// remove devices no longer present on server from $scope.devices
+						var i = $scope.devices.length;
+						while( i > 0 ) {
+							i--;
+							var scopeDevice = $scope.devices[i];
+							var isFound = false;
+						
+							// iterate through devices just fetched from the server
+							angular.forEach(result.dashboardRefresh.devices, function( dataDevice ) {								
+								if ( scopeDevice.matches( dataDevice ) ) {
+									isFound = true;
+								}
+							});
+							
+							if( !isFound ) {
+								// remove scopeDevice from $scope.devices
+								$scope.devices.splice(i, 1);
+							}
 						}
 						
-						// TODO: Find a better way of updating the devices on the scope. Need to update rather than overwrite. Try to find a way to intercept class creation in the resource service.
-						$scope.devices = devices;
 						$scope.secondsToUpdate = config.refreshInterval;			
 						setupTimeout();
 					}, function() {
