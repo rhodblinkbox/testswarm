@@ -51,7 +51,17 @@
 	errorOut = 0;
 	cmds = {
 		reload: function () {
-			window.location.reload();
+			if( window.parent !== window && !!window.parent.Main && !!window.parent.Main.reload ) {	
+				
+				log( 'run.js: cmds.reload: Maple detected, reloading parent: window.parent.Main.reload();' );	
+				// Samsung 2010 seems to need a delay in order to reload the page and bootstrap correctly (otherwise page doesn't start 'ticking down' at all!)
+				setTimeout(function() {
+					window.parent.Main.reload();	// Samsung 2010 and 2011 runs testswarm in an iframe. Reload parent instead of this window.
+				}, 2000);
+			} else {
+				log( 'run.js: cmds.reload: window.location.reload();' );		
+				window.top.location.reload();
+			}
 		}
 	};
 
@@ -118,8 +128,25 @@
 		$( 'iframe' ).remove();
 	}
 
+	function timeoutCheck( runInfo ) {
+		// if test really timed out? check database
+		retrySend( { action: 'runner', run_id: currRunId, type: 'timeoutCheck' }, function () {
+			log('run.js: timeoutCheck(): retry');
+			timeoutCheck( runInfo );
+		}, function ( data ) {
+			if ( data.runner.testTimedout === 'true' ) {
+				log('run.js: timeoutCheck(): true');
+				testTimedout( runInfo );
+			} else {
+				log('run.js: timeoutCheck(): false');
+				setupTestTimeout( runInfo );
+			}		
+		});
+	}
+	
 	function testTimedout( runInfo ) {
-		log('run.js: testTimedout(): hello');
+		log('run.js: testTimedout()');
+		
 		cancelTest();
 		retrySend(
 			{
@@ -150,7 +177,14 @@
 			}
 		);
 	}
-
+	
+	function setupTestTimeout( runInfo ) {
+		// Timeout after a period of time
+		testTimeout = setTimeout( function () {
+			timeoutCheck( runInfo );
+		}, SWARM.conf.client.runTimeout * 1000 );
+	}
+	
 	/**
 	 * @param data Object: Reponse from api.php?action=getrun
 	 */
@@ -179,7 +213,7 @@
 				log( 'Running ' + ( runInfo.desc || '' ) + ' tests...' );
 
 				iframe = document.createElement( 'iframe' );
-				iframe.width = 1000;
+				iframe.width = '99%';
 				iframe.height = 600;
 				iframe.className = 'test-runner-frame';
 				iframe.src = currRunUrl + (currRunUrl.indexOf( '?' ) > -1 ? '&' : '?') + $.param({
@@ -194,23 +228,14 @@
 							client_id: SWARM.client_id,
 							run_token: SWARM.run_token,
 							results_id: runInfo.resultsId,
-							results_store_token: runInfo.resultsStoreToken
+							results_store_token: runInfo.resultsStoreToken,
+							decode_html: SWARM.decode_html
 						})
 				});
 
 				$( '#iframes' ).append( iframe );
 
-				var iframes = $('iframe');
-				log('run.js: runTests(): iframes count: ' + iframes.length);
-				if( iframes.length == 1 ) {
-					var iframe = iframes[0];
-					log('run.js: runTests(): iframe[0].src=' + iframe.src);					
-				}
-
-				// Timeout after a period of time
-				testTimeout = setTimeout( function () {
-					testTimedout( runInfo );
-				}, SWARM.conf.client.runTimeout * 1000 );
+				setupTestTimeout( runInfo );
 
 				return;
 			}
@@ -249,7 +274,7 @@
 	// as window.parent.SWARM.runDone();
 	SWARM.runDone = function () {
 		log( 'run.js: runDone(): reloading page...' );
-		location.reload();
+		cmds.reload();
 		return;
 		
 		// code below won't get executed as we are reloading the test runner page
@@ -288,7 +313,11 @@
 					cmds.reload();
 					return;
 				}
-
+	
+				if( data.ping.confUpdate.deviceName !== SWARM.conf.deviceName ) {
+					$('#deviceName').text(data.ping.confUpdate.deviceName);
+				}
+				
 				$.extend( SWARM.conf, data.ping.confUpdate );
 			}
 		}).always( function () {

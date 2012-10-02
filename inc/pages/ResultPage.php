@@ -81,12 +81,19 @@ class ResultPage extends Page {
 			. '<tr><th>Client</th><td>'
 				. html_tag( 'a', array( 'href' => $data['client']['userUrl'] ), $data['client']['userName'] )
 				. ' / Client #' . htmlspecialchars( $data['resultInfo']['clientID'] )
-				. ' / '
-				. html_tag( 'a', array( 'target' => '_blank', 'href' => 'http://bay.blinkbox.local/mediawiki/index.php?profile=default&search=' . htmlspecialchars( $data['client']['userAgent'] ) ), 'search for this device on blinkbox wiki' )
 			. '</td></tr>'
+			. ( $data['client']['deviceName'] !== null
+				? '<tr><th>Device name</th><td>'
+					. $data['client']['deviceName']
+					. ' / '
+					. html_tag( 'a', array( 'target' => '_blank', 'href' => 'http://wiki.blinkbox.local/wiki/index.php?profile=default&search=' . htmlspecialchars( $data['client']['deviceName'] ) ), 'search for ' . $data['client']['deviceName'] . ' on blinkbox wiki' )
+				. '</td></tr>'
+				: ''
+			)
 			. '<tr><th>User-Agent</th><td>'
 				. '<code>' . htmlspecialchars( $data['client']['uaID'] ) . '</code><br/>'
-				. 'Raw: <br><code>' . htmlspecialchars( $data['client']['userAgent'] ) . '</code>'
+				. 'Raw: <br><code>' . htmlspecialchars( $data['client']['userAgent'] ) . '</code><br/>'
+				. html_tag( 'a', array( 'target' => '_blank', 'href' => 'http://wiki.blinkbox.local/wiki/index.php?profile=default&search=' . htmlspecialchars( $data['client']['userAgent'] ) ), 'search for this user agent on blinkbox wiki' )
 			. '</td></tr>'
 			. '<tr><th>Run time</th><td>'
 			. ( isset( $data['resultInfo']['runTime'] )
@@ -96,6 +103,15 @@ class ResultPage extends Page {
 			. '</td></tr>'
 			. '<tr><th>Status</th><td>'
 				. htmlspecialchars( $data['resultInfo']['status'] )
+			. '</td></tr>'
+			. '<tr><th>Total</th><td>'
+				. htmlspecialchars( $data['resultInfo']['total'] )
+			. '</td></tr>'
+			. '<tr><th>Fail</th><td>'
+				. htmlspecialchars( $data['resultInfo']['fail'] )
+			. '</td></tr>'
+			. '<tr><th>Error</th><td>'
+				. htmlspecialchars( $data['resultInfo']['error'] )
 			. '</td></tr>'
 			. '<tr><th>Started</th><td>'
 				. self::getPrettyDateHtml( $data['resultInfo'], 'started' )
@@ -154,7 +170,7 @@ class ResultPage extends Page {
 			$status = intval( $row->status );
 			// If it finished or was aborted, there should be
 			// a (at least partial) html report.
-			if ( $status === ResultAction::$STATE_FINISHED || $status === ResultAction::$STATE_ABORTED ) {
+			if ( $status === ResultAction::$STATE_FINISHED || $status === ResultAction::$STATE_ABORTED || $status === ResultAction::$STATE_HEARTBEAT ) {
 				if ( $row->report_html ) {
 					header( 'Content-Encoding: gzip' );
 					echo $row->report_html;

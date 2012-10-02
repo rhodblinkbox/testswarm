@@ -23,7 +23,9 @@ class UserPage extends Page {
 			"passed" => '<i class="icon-ok" title="Passed!"></i>',
 			"failed" => '<i class="icon-remove" title="Completed with failures"></i>',
 			"timedout" => '<i class="icon-warning-sign" title="Maximum execution time exceeded"></i>',
+			"heartbeat" => '<i class="icon-heart" title="Timed-out: Heartbeat caused result submission"></i>',
 			"error" => '<i class="icon-flag" title="Aborted by an error"></i>',
+			"cancelled" => '<i class="icon-ban-circle" title="Job execution has been cancelled."></i>'
 		);
 		return isset( $icons[$status] ) ? $icons[$status] : '';
 	}

@@ -42,10 +42,18 @@ class PingAction extends Action {
 		// Throws exception (caught higher up) if stuff is invalid.
 		$client = Client::newFromContext( $this->getContext(), $runToken, $clientID );
 
+		$db = $this->getContext()->getDB();
+		$device_name = $db->getOne(str_queryf( "SELECT device_name FROM clients WHERE id = %u;", $clientID ));
+		
+		if ( !isset($device_name) ) {
+			$device_name = 'Testswarm ID = ' . $clientID;
+		}
+		
 		$this->setData( array(
 			'status' => 'ok',
 			'confUpdate' => array(
-				'client' => $conf->client
+				'client' => $conf->client,
+				'deviceName' => $device_name
 			),
 		) );
 	}

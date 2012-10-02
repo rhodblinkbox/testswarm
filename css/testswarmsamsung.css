@@ -1,45 +1,10 @@
-@-o-keyframes rotate {
-	from {
-		-o-transform: rotate(0deg);
-	}
-	to {
-		-o-transform: rotate(360deg);
-	}
-}
-@-ms-keyframes rotate {
-	from {
-		-ms-transform: rotate(0deg);
-	}
-	to {
-		-ms-transform: rotate(360deg);
-	}
-}
-@-moz-keyframes rotate {
-	from {
-		-moz-transform: rotate(0deg);
-	}
-	to {
-		-moz-transform: rotate(360deg);
-	}
-}
-@-webkit-keyframes rotate {
-	from {
-		-webkit-transform: rotate(0deg);
-	}
-	to {
-		-webkit-transform: rotate(360deg);
-	}
-}
-@keyframes rotate {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
-}
 
 /* Make tables spaced out a bit more */
+
+body div {
+	background-color: #eee;
+}
+
 h2 + table,
 h3 + table,
 h4 + table,
@@ -139,18 +104,12 @@ table.swarm-results tbody td.swarm-status-passed a {
 }
 
 table.swarm-results tbody td.swarm-status-timedout,
-table.swarm-results tbody td.swarm-status-heartbeat,
 table.swarm-results tbody td.swarm-status-error,
 table.swarm-results tbody td.swarm-status-failed {
 	background: #EFD7D7;
 }
-table.swarm-results tbody td.swarm-status-cancelled {
-	background: #FFFFFF;
-}
 table.swarm-results tbody td.swarm-status-timedout,
 table.swarm-results tbody td.swarm-status-timedout a,
-table.swarm-results tbody td.swarm-status-heartbeat,
-table.swarm-results tbody td.swarm-status-heartbeat a,
 table.swarm-results tbody td.swarm-status-error,
 table.swarm-results tbody td.swarm-status-error a,
 table.swarm-results tbody td.swarm-status-failed,
@@ -160,38 +119,6 @@ table.swarm-results tbody td.swarm-status-failed a {
 
 table.swarm-results tbody td.swarm-status-notscheduled {
 	background: #fff;
-}
-
-.swarm-status-progressicon {
-	-o-animation-name: rotate;
-	-o-animation-direction: normal;
-	-o-animation-duration: 2s;
-	-o-animation-timing-function: linear;
-	-o-animation-iteration-count: infinite;
-
-	-ms-animation-name: rotate;
-	-ms-animation-direction: normal;
-	-ms-animation-duration: 2s;
-	-ms-animation-timing-function: linear;
-	-ms-animation-iteration-count: infinite;
-
-	-moz-animation-name: rotate;
-	-moz-animation-direction: normal;
-	-moz-animation-duration: 2s;
-	-moz-animation-timing-function: linear;
-	-moz-animation-iteration-count: infinite;
-
-	-webkit-animation-name: rotate;
-	-webkit-animation-direction: normal;
-	-webkit-animation-duration: 2s;
-	-webkit-animation-timing-function: linear;
-	-webkit-animation-iteration-count: infinite;
-
-	animation-name: rotate;
-	animation-direction: normal;
-	animation-duration: 2s;
-	animation-timing-function: linear;
-	animation-iteration-count: infinite;
 }
 
 .swarm-page-footer {

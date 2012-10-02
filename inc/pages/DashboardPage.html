@@ -1,0 +1,368 @@
+<style>
+	.mouseOver:hover {
+		cursor: pointer;
+		cursor: hand;
+	}
+	
+	/* the top nav bar hides table caption so add padding here */
+	.navBarSpacer {
+		padding-top: 41px;
+	}
+</style>
+
+<div id="table" ng-app="dashboard" class="navBarSpacer">
+	<div ng:controller="devicesController">
+		<table class="table table-striped table-hover table-condensed">
+			<caption>
+				<span ng-show="!!devices.length" class="badge badge-default">{{devices.length}} devices found</span>
+				<span ng-show="!!devices.length" class="badge badge-default">{{getActiveDevicesCount()}} active</span>				
+				<span ng-show="!!error" class="badge badge-important">Problem getting the latest data!</span>
+				<span class="badge badge-default">updating data in {{secondsToUpdateText()}}...</span>
+			</caption>
+			<thead>
+				<tr class="success">
+					<th>IP address</th>
+					<th>Browser</th>
+					<th>Device name</th>
+					<th>Last seen <i class="icon-chevron-down"></i></th>
+					<th>&nbsp;</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="device in devices | orderBy:'updated':true" ng-class="{error: device.lastSeenError, warning: device.lastSeenWarning}">
+					<td>{{device.ip}}</td>
+					<td>{{device.browser}}</td>
+					<td>{{device.name}}</td>
+					<td>{{device.lastSeen}}</td>
+					<td ng:click="edit(device)"><i class="icon-pencil mouseOver"></i></td>
+				</tr>
+			</tbody>
+		</table>		
+	</div>
+	<hr/>
+	<div ng:controller="configController">
+		<button class="btn btn-inverse" ng:click="modalShown=true">Settings</button>
+		
+		<div ui-modal ng:model="modalShown">
+			<div class="modal-header">
+				<h1>Settings</h1>
+			</div>
+			<div class="modal-body">
+				<p><span>Device warning threshold</span> <strong>{{deviceWarningThreshold}}s</strong><i rel="tooltip" title="You can use deviceWarningThreshold querystring parameter to override this setting." class="icon-question-sign"></i></p>
+				<p><span>Device error threshold</span> <strong>{{deviceErrorThreshold}}s ( {{ deviceErrorThreshold / (60*60) }} hours )</strong><i rel="tooltip" title="You can use deviceErrorThreshold querystring parameter to override this setting." class="icon-question-sign"></i></p>
+				<p><span>Device too old threshold</span> <strong>{{deviceTooOldThreshold}}s ( {{ deviceTooOldThreshold / (24*60*60) }} days )</strong><i rel="tooltip" title="You can use deviceTooOldThreshold querystring parameter to override this setting." class="icon-question-sign"></i></p>		
+				<p><span>Dashboard refresh interval</span> <strong>{{refreshInterval}}s</strong><i rel="tooltip" title="You can use refreshInterval querystring parameter to override this setting." class="icon-question-sign"></i></p>
+			</div>
+			<div class="modal-footer">
+				<a class="btn btn-info" ng-click="modalShown=false" href="">Close</a>
+			</div>
+		</div>
+	</div>
+	<div ng:controller="editController">
+		<div ui-modal ng:model="modalShown">
+			<div class="modal-header">
+				<h1>Edit device</h1>
+			</div>
+			<div class="modal-body">
+				<form name="myForm" novalidate>
+					<p><span>Testswarm ID</span> <strong>{{device.id}}</strong></p>
+					<p><span>IP address</span> <strong>{{device.ip}}</strong></p>
+					<p><span>Browser name</span> <strong>{{device.browser}}</strong></p>		
+					<p class="control-group" ng:class="{'text-error': myForm.name.$invalid}">
+						<span>Device name</span>
+						<input type="text" name="name" ng-model="device.name" size="30" placeholder="device name" required />
+						<span ng-show="myForm.name.$error.required">Required</span>
+					</p>
+					<p><span>Last seen</span> <strong>{{device.lastSeen}}</strong></p>				
+					<p><span>Created</span> <strong>{{device.created.toString()}}</strong></p>				
+				<form>
+			</div>
+			<div class="modal-footer">
+				<span ng-show="saving">Saving...</span>
+				<button class="btn btn-success" ng-click="save()" ng-disabled="saving || myForm.$invalid" type="submit">Save</button>
+				<button class="btn btn-danger" ng-click="close()" ng-disabled="saving" type="button">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript" src="/testswarm/js/angular.min.js"></script>
+<script type="text/javascript" src="/testswarm/js/angular-resource.min.js"></script>
+<script type="text/javascript" src="/testswarm/js/angular-ui.min.js"></script>
+<script type="text/javascript" src="/testswarm/js/bootstrap-modal.js"></script>
+<script type="text/javascript" src="/testswarm/js/bootstrap-tooltip.js"></script>
+<script type="text/javascript">
+	var arrayHelper = {
+		common: function(a1, a2, compare) {			
+			// find elements in both arrays
+			var results = [];
+			angular.forEach(a1, function( a ) {
+				angular.forEach(a2, function( b ) {
+					if( compare(a, b) ) {
+						results.push( [a, b] );
+					}
+				});
+			});
+			
+			return results;
+		},
+		leftOnly: function(a1, a2, compare) {
+			// find elements only in a1 array
+			var results = [];
+			angular.forEach(a1, function( a ) {
+				var isFound = false;
+				angular.forEach(a2, function( b ) {
+					if( compare(a, b) ) {
+						isFound = true;
+					}
+				});
+				if( !isFound ) {
+					results.push( a );
+				}
+			});
+			
+			return results;						
+		},
+		remove: function( arr, obj ) {
+			var i = arr.length;
+			while( i > 0 ) {
+				i--;
+				if ( arr[i] == obj ) {
+					arr.splice(i, 1);
+					return
+				}
+			}
+		}
+	};
+	
+	function Device (device, now, deviceErrorThreshold, deviceWarningThreshold) {		
+		
+		this.update = function update(device, now) {
+			this.ip = device.ip;
+			this.browser = device.browser;
+			this.updated = device instanceof Device ? device.updated : new Date(device.updated * 1000);
+			this.created = device instanceof Device ? device.created : new Date(device.created * 1000);
+			this.name = device.name || this.id;
+			
+			var lastSeenSeconds = (now - this.updated) / 1000;
+			this.lastSeen = getLastSeenText(lastSeenSeconds);
+			this.lastSeenError = lastSeenSeconds > deviceErrorThreshold;
+			this.lastSeenWarning = !this.lastSeenError && lastSeenSeconds > deviceWarningThreshold;		
+		}
+		
+		this.matches = function matches( device ) {
+			return this.id == device.id;
+		}
+		
+		this.serialize = function serialize() {
+			return {
+				id: this.id,
+				name: this.name
+			}
+		}		
+		
+		function getLastSeenText(seconds) {
+			var daysDifference = Math.floor(seconds/60/60/24);
+			seconds -= daysDifference*60*60*24;
+
+			var hoursDifference = Math.floor(seconds/60/60);
+			seconds -= hoursDifference*60*60;
+
+			var minutesDifference = Math.floor(seconds/60);
+			seconds -= minutesDifference*60;
+			
+			var result = [];
+			
+			if(daysDifference > 0) {
+				result.push(daysDifference);
+				result.push('days');
+			}
+			
+			if(hoursDifference > 0) {
+				result.push(hoursDifference);
+				result.push('hours');
+			}
+			
+			if(minutesDifference > 0) {
+				result.push(minutesDifference);
+				result.push('minutes');
+			}
+			
+			if(result.length == 0) {
+				result.push('less than a minute');
+			}
+			
+			result.push('ago');
+			
+			return result.join(' ');
+		}
+		
+		this.id = parseInt( device.id );			
+		this.update( device, now );		
+	}
+	
+	angular
+		.module('dashboard', [ 'ngResource', 'ui' ])
+		.factory('config', [function () {
+			/// <summary>Gets all query string parameters and returns them as an array.</summary>
+			function getQueryStringParams()
+			{
+				var vars = [], hash;
+				var q = document.URL.split('?')[1];
+				if (q != undefined)
+				{
+					q = q.split('&');
+					for (var i = 0; i < q.length; i++)
+					{
+						hash = q[i].split('=');
+						vars.push(hash[1]);
+						vars[hash[0]] = hash[1];
+					}
+				}
+
+				return vars;
+			}
+			
+			var params = getQueryStringParams();
+			
+			var config = { 
+				deviceWarningThreshold: params['deviceWarningThreshold'] || window.SWARM.conf.client.pingTime + window.SWARM.conf.client.pingTimeMargin,
+				deviceErrorThreshold: params['deviceErrorThreshold'] || 60 * 60,
+				deviceTooOldThreshold: params['deviceTooOldThreshold'] || 60 * 60 * 24 * 15,	// consider devices older than 15 days as not relevant
+				refreshInterval: params['refreshInterval'] || 5
+			};
+			
+			return config;
+		}])
+		.factory('api', ['$resource', 'config', function ($resource, config) {
+			return $resource('api.php', { }, { 
+				'query': { method: 'POST', params: { deviceTooOldThreshold: config.deviceTooOldThreshold, action: 'dashboardRefresh' } },
+				'save': { method: 'POST', params: { action: 'setDeviceName' } }
+			});
+		}])
+		.factory('events', [ '$rootScope', function ( $rootScope ) {
+			return {
+				edit: function ( device ) {
+					$rootScope.$broadcast('edit', device); 
+				},
+				refresh: function ( forceReload ) {
+					$rootScope.$broadcast('reloadDevices', forceReload); 
+				}
+			};
+		}])
+		.controller('configController', ['$scope', 'config', function configController($scope, config) {
+		   $scope.deviceWarningThreshold = config.deviceWarningThreshold;
+		   $scope.deviceErrorThreshold = config.deviceErrorThreshold;	   
+		   $scope.deviceTooOldThreshold = config.deviceTooOldThreshold;
+		   $scope.refreshInterval = config.refreshInterval;
+		}])
+		.controller('editController', ['$scope', 'api', 'events', function editController($scope, api, events) {
+			$scope.$on('edit', function (event, device) {
+				$scope.device = device;
+				$scope.modalShown = true;
+				//$("[rel=tooltip]").tooltip();	// TODO: make this tooltip work
+			});
+			
+			$scope.save = function() {
+				$scope.saving = true;
+				
+				api.save($scope.device.serialize(), function() {
+					$scope.saving = false;
+					$scope.close();
+					events.refresh( true ); // force data refresh in devicesController straight away by raising an event
+				});
+			}	
+
+			$scope.close = function() {
+				$scope.modalShown = false;
+				$scope.device = null;
+			}
+		}])
+		.controller('devicesController', ['$scope', '$timeout', 'api', 'config', 'events', function devicesController($scope, $timeout, api, config, events) {
+			$scope.secondsToUpdate = -1;
+			$scope.devices = [];
+			
+			$scope.$on('reloadDevices', function (event, forceReload) {
+			
+				var setupTimeout = function () {
+					$scope.reloadDevicesTimeoutPromise = $timeout( function() { events.refresh( false ); }, 1000 );
+				};
+			
+				if ( $scope.reloadDevicesTimeoutPromise ) {
+					$timeout.cancel($scope.reloadDevicesTimeoutPromise);
+				}
+				
+				if ( forceReload || $scope.secondsToUpdate < 1 ) {	
+					$scope.secondsToUpdate = -1;
+					$scope.error = false;
+					
+					api.query(function(result) {
+						$scope.serverTime = new Date(result.dashboardRefresh.serverTime * 1000); // convert unix timestamp to javascript date
+												
+						// convert to array of devices
+						var serverDevices = [];
+						angular.forEach(result.dashboardRefresh.devices, function( data ) {
+							serverDevices.push( new Device( data, $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold ) );
+						});						
+						
+						var compareFn = function compare( a, b ) { return a.matches(b); };
+						
+						// find devices to update
+						var update = arrayHelper.common( serverDevices, $scope.devices, compareFn );
+						angular.forEach( update, function( data ) {
+							var serverDevice = data[0];
+							var clientDevice = data[1];
+							clientDevice.update(serverDevice, $scope.serverTime);
+						});
+						
+						// find devices to remove
+						var clientOnly = arrayHelper.leftOnly( $scope.devices, serverDevices, compareFn );
+						angular.forEach( clientOnly, function( clientDevice ) {
+							arrayHelper.remove( $scope.devices, clientDevice );
+						});
+						
+						// find devices to add
+						var serverOnly = arrayHelper.leftOnly( serverDevices, $scope.devices, compareFn );
+						angular.forEach( serverOnly, function( serverDevice ) {
+							$scope.devices.push( serverDevice );
+						});		
+						
+						$scope.secondsToUpdate = config.refreshInterval;			
+						setupTimeout();
+					}, function() {
+						$scope.secondsToUpdate = config.refreshInterval;	
+						$scope.error = true;
+						setupTimeout();
+					});				
+				} else {
+					$scope.secondsToUpdate--;
+					setupTimeout();
+				}
+			});
+			
+			$scope.secondsToUpdateText = function () {
+				return $scope.secondsToUpdate < 1 ? 'in progress' : $scope.secondsToUpdate + 's';
+			}
+			
+			$scope.edit = function (device) {
+				events.edit( angular.copy(device) );
+			}
+			
+			$scope.getActiveDevicesCount = function () {
+				var counter = 0;
+				if ( !$scope.devices ) {
+					return counter;
+				}
+				
+				for(var i = 0; i < $scope.devices.length; i++) {
+					var device = $scope.devices[i];
+					if( !device.lastSeenError && !device.lastSeenWarning ) {
+						counter++;
+					}
+				}					
+
+				return counter;
+			}
+			
+			events.refresh( true );
+		}]);
+</script>

@@ -59,8 +59,15 @@ class SaverunAction extends Action {
 		$error = $request->getInt( 'error', 0 );
 		$status = $request->getInt( 'status', 2 );
 		$reportHtml = $request->getVal( 'report_html', '' );
-
-		if ( !in_array( $status, array( 2, 3 ) ) ) {
+		$decodeHtml = $request->getVal( 'decode_html', 'false' );
+		
+		// Samsung 2010 encodes the data submitted in the form fields.
+		// Body of the test runner needs to be decoded before it gets stored in the database.
+		if ( $decodeHtml === 'true' ) { 
+			$reportHtml = urldecode( $reportHtml );
+		}
+		
+		if ( !in_array( $status, array( 2, 3, 5 ) ) ) {
 			$this->setError( 'invalid-input', 'Illegal status to be set from the client side in action=saverun.' );
 			return;
 		}
@@ -111,7 +118,9 @@ class SaverunAction extends Action {
 			return;
 		}
 
-		$isPassed = $total > 0 && $fail === 0 && $error === 0;
+		//$isPassed = $total > 0 && $fail === 0 && $error === 0;
+		// BLINKBOX NOTE: we might have few tests where total might be equal to 0 and it should be considered as success
+		$isPassed = $fail === 0 && $error === 0;
 
 		// Use results_id in the WHERE clause as additional check, just in case
 		// this runresults row is no longer the primary linked one.

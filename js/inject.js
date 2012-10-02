@@ -14,8 +14,8 @@
 /*global jQuery, $, QUnit, Test, JSSpec, JsUnitTestManager, SeleniumTestResult, LOG, doh, Screw*/
 /*jshint forin:false, strict:false, loopfunc:true, browser:true, jquery:true*/
 (function (undefined) {
-	var	DEBUG, doPost, search, url, index, submitTimeout, curHeartbeat,
-		beatRate, testFrameworks, onErrorFnPrev;
+	var	DEBUG, doPost, search, url, index, submitTimeout, 
+		beatRate, defaultBeatRate, testFrameworks, onErrorFnPrev;
 
 	DEBUG = false;
 
@@ -23,8 +23,7 @@
 	search = window.location.search;
 	index = search.indexOf( 'swarmURL=' );
 	submitTimeout = 5;
-	beatRate = 20;
-
+	defaultBeatRate = beatRate = 20;
 	try {
 		doPost = !!window.parent.postMessage;
 	} catch ( e ) {}
@@ -41,7 +40,13 @@
 	if ( !DEBUG ) {
 		window.print = window.confirm = window.alert = window.open = function () {};
 	}
-
+	
+	var css = document.createElement('link'), 
+		baseUrl = url.split('index.php?')[0];
+	css.rel = 'stylesheet';
+	css.href = baseUrl + 'css/runner.css';
+	document.getElementsByTagName('head')[0].appendChild(css);
+	
 	/** Utility functions **/
 
 	function debugObj( obj ) {
@@ -91,15 +96,20 @@
 
 	function log(message)
 	{
-		var span = document.createElement( "span" );
-		span.innerText = message;
+		var span = document.createElement( 'span' );
+		if (typeof message === 'string') {
+			span.innerText = message;
+		} 
+		if (typeof message === 'object') {
+			span.innerText = message.message;
+		}
 		
-		var strong = document.createElement( "strong" );
+		var strong = document.createElement( 'strong' );
 		strong.innerText = ( function getDate() {
 		
 			function pad(num, size) {
-				var s = num+"";
-				while (s.length < size) s = "0" + s;
+				var s = num+'';
+				while (s.length < size) s = '0' + s;
 				return s;
 			}
 		
@@ -114,43 +124,77 @@
 					pad( now.getMilliseconds(), 4 ) + ': ';
 		} ) ();
 		
-		var li = document.createElement( "li" );
+		var li = document.createElement( 'li' );
+		if (typeof message === 'object') {
+			li.className = message.cssClass;
+		}
 		li.appendChild(strong);
 		li.appendChild(span);
 		//getLogger().appendChild(li);
 		var ul = getLogger();
 		ul.insertBefore(li, ul.childNodes[0]);
 	}
-	
+
+	// keep reference to logger. logger needs to work before it gets added to DOM.
 	var logger = null;
 	function getLogger()
 	{
 		if(!logger) {
-			logger = document.createElement( "ul" );
-			logger.id = "logger";		
+			// create logger if null;
+			logger = document.createElement( 'ul' );
+			logger.id = 'logger';
 		}
 		
+		// add logger to DOM
 		if(document.body && !document.getElementById('logger'))
 		{
+			var loggerWrapper = document.createElement( 'div' );
+			loggerWrapper.id = 'loggerWrapper';
+			
 			var logHeader = document.createElement( 'h1' );
-			logHeader.innerText = "Run logs:";
-			document.body.appendChild( logHeader );
-			document.body.appendChild( logger );
+			logHeader.innerText = 'Run logs:';
+			loggerWrapper.appendChild( logHeader );
+			
+			loggerWrapper.appendChild( logger );
+			document.body.appendChild( loggerWrapper );
 		}
 	
 		return logger;		
 	}	
-
-	function submit( params ) {
-		log('Submitting runner results...');	
-
-		var form, i, input, key, paramItems, parts, query;
-
-		if ( curHeartbeat ) {
-			clearTimeout( curHeartbeat );
+	
+	function objectToQuerystring( params ) {
+		var query = '';
+		
+		for ( key in params ) {
+			query += ( query ? '&' : '' ) + key + '=' + encodeURIComponent( params[key] );
 		}
-
-		paramItems = (url.split( '?' )[1] || '' ).split( '&' );
+		
+		return query;
+	}
+	
+	function specStart() {
+		var params = {
+			fail: angular.testSwarmResults.fail,
+			error: angular.testSwarmResults.error,
+			total: angular.testSwarmResults.total,
+			beatRate: beatRate,
+			action: 'runner',
+			type: 'specStart'
+		};
+	
+		params = extendParams( params );
+		var url = baseUrl + 'api.php?' + objectToQuerystring( params );
+				
+		log('spec Start ... ' + url);	
+		var img = new Image();
+		// TODO: use onLoad event
+		//img.onLoad = function () { };
+		img.src = url;
+	}
+	
+	// Extend params by querystring parameters.
+	function extendParams( params ) {
+		var parts, paramItems = (url.split( '?' )[1] || '' ).split( '&' );
 
 		for ( i = 0; i < paramItems.length; i += 1 ) {
 			if ( paramItems[i] ) {
@@ -160,6 +204,20 @@
 				}
 			}
 		}
+		
+		return params;
+	}
+		
+	function submit( params ) {
+		log('Submitting runner results...');	
+
+		var form, i, input, key;
+
+		if ( window.curHeartbeat ) {
+			clearTimeout( window.curHeartbeat );
+		}
+
+		params = extendParams( params );
 
 		if ( !params.action ) {
 			params.action = 'saverun';
@@ -181,14 +239,8 @@
 		}
 
 		if ( doPost ) {
-			// Build Query String
-			query = '';
-
-			for ( key in params ) {
-				query += ( query ? '&' : '' ) + key + '=' + encodeURIComponent( params[key] );
-			}
-
 			if ( !DEBUG ) {
+				var query = objectToQuerystring( params );
 				window.parent.postMessage( query, '*' );
 				log('Message posted');
 			}
@@ -264,16 +316,36 @@
 
 	// Expose the TestSwarm API
 	window.TestSwarm = {
+		result: {
+					fail: 0,
+					error: 0,
+					total: 0
+				},
 		submit: submit,
-		heartbeat: function () {
-			if ( curHeartbeat ) {
-				clearTimeout( curHeartbeat );
+		heartbeat: function ( name ) {
+			
+			if ( window.curHeartbeat !== undefined ) {
+				clearTimeout( window.curHeartbeat );
 			}
+		
+			var msg = 'Heartbeating... ';
+			if( !!name ) {
+				if ( typeof name === "string" ) {
+					name = msg + name;
+				}
+				
+				if ( typeof name === "object" ) {
+					name.message = msg + name.message;
+				}
+				
+				log( name );
+			}		
 
-			curHeartbeat = setTimeout(function () {
+			window.curHeartbeat = setTimeout(function () {
 				log('Heartbeat caused results submission...');
-				submit({ fail: -1, total: -1 });
+				submit({ status: 5, fail: window.TestSwarm.result.fail, total: window.TestSwarm.result.total, error: window.TestSwarm.result.error });
 			}, beatRate * 1000);
+
 		},
 		serialize: function () {
 			return trimSerialize();
@@ -281,9 +353,9 @@
 	};
 
 	testFrameworks = {
-		"Jasmine": {
+		'Jasmine': {
 			detect: function() {
-				return typeof jasmine !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+				return typeof jasmine !== 'undefined' && typeof describe !== 'undefined' && typeof it !== 'undefined';
 			},
 			install: function() {
 				log('installing Jasmine framework support');
@@ -295,7 +367,7 @@
                     {
                         log('Jasmine reportRunnerStarting');
 						// reset counters
-						jasmineTestSwarmResults = {
+						window.TestSwarm.result = jasmineTestSwarmResults = {
 							fail: 0,
 							error: 0,
 							total: 0
@@ -346,10 +418,10 @@
 		
 		// AngularJS
 		// http://docs.angularjs.org/guide/dev_guide.e2e-testing
-		"AngularJS": {
+		'AngularJS': {
 			detect: function() {
 				log('Detecting AngularJS framework...');
-				var isDetected = typeof angular !== "undefined" && typeof describe !== "undefined" && typeof it !== "undefined";
+				var isDetected = typeof angular !== 'undefined' && typeof describe !== 'undefined' && typeof it !== 'undefined';
 				log('AngularJS framework detected: ' + isDetected);
 				return isDetected;
 			},
@@ -379,7 +451,7 @@
 				angular.scenario.output('angularJsSwarm', function(context, runner, model) {
 				
 					var resetResults = function() {
-						angular.testSwarmResults = {
+						window.TestSwarm.result = angular.testSwarmResults = {
 								fail: 0,
 								error: 0,
 								total: 0
@@ -391,6 +463,10 @@
 					model.on('SpecBegin', function(spec) {
 						log('Spec Begin: ' + spec.name);
 						angular.testSwarmResults.total++;
+						
+						// override beatRate with expected test duration. spec.duration is not implemented yet, value should come from the test.
+						beatRate = spec.duration || defaultBeatRate;
+						specStart();						
 						window.TestSwarm.heartbeat();	// we are still alive, trigger heartbeat so test execution won't time out
 					});
 					
@@ -451,16 +527,50 @@
 				return typeof QUnit !== 'undefined';
 			},
 			install: function () {
+				log( 'Installing QUnit support...' );
+				
 				QUnit.done = function ( results ) {
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: results.failed,
 						error: 0,
 						total: results.total
 					});
 				};
 
-				QUnit.log = window.TestSwarm.heartbeat;
-				window.TestSwarm.heartbeat();
+				var moduleCount = 0, testCount = 0, logCount = 0;
+				
+				QUnit.testStart = function( name ) {
+					testCount++;
+					logCount = 0;
+					var msg = 'QUnit: testStart ' + testCount + ': ' + name.name;
+					QUnit.heartbeat( {
+						message: msg,
+						cssClass: 'test'
+					} );
+				};
+				
+				QUnit.moduleStart = function( name ) {
+					moduleCount++;
+					var msg = 'QUnit: moduleStart ' + moduleCount + ': ' + name.name;
+					QUnit.heartbeat( {
+						message: msg,
+						cssClass: 'group'
+					} );
+				};
+				
+				// result, actual, expected, message
+				QUnit.log = function ( results ) {
+					logCount++;
+					var msg = 'QUnit: log ' + logCount + ': ' + results.message;
+					QUnit.heartbeat( {
+						message: msg,
+						cssClass: 'run'
+					} );					
+				};				
+
+				QUnit.heartbeat = window.TestSwarm.heartbeat;
+
+				QUnit.heartbeat();
 
 				window.TestSwarm.serialize = function () {
 					var ol, i;
@@ -491,9 +601,6 @@
 			install: function () {
 				var	total_runners = Test.Unit.runners.length,
 					cur_runners = 0,
-					total = 0,
-					fail = 0,
-					error = 0,
 					i;
 
 				for ( i = 0; i < Test.Unit.runners.length; i += 1 ) {
@@ -508,17 +615,13 @@
 							finish.call( this );
 
 							results = this.getResult();
-							total += results.assertions;
-							fail += results.failures;
-							error += results.errors;
+							window.TestSwarm.result.total += results.assertions;
+							window.TestSwarm.result.fail += results.failures;
+							window.TestSwarm.result.error += results.errors;
 
 							cur_runners += 1;
 							if ( cur_runners === total_runners ) {
-								submit({
-									fail: fail,
-									error: error,
-									total: total
-								});
+								submit(window.TestSwarm.result);
 							}
 						};
 					}( i ) );
@@ -545,7 +648,7 @@
 						ul[i].style.display = 'block';
 					}
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: JSSpec.runner.getTotalFailures(),
 						error: JSSpec.runner.getTotalErrors(),
 						total: JSSpec.runner.totalExamples
@@ -578,7 +681,7 @@
 				JsUnitTestManager.prototype._done = function () {
 					_done.call( this );
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: this.failureCount,
 						error: this.errorCount,
 						total: this.totalCount
@@ -600,7 +703,7 @@
 			install: function () {
 				// Completely overwrite the postback
 				SeleniumTestResult.prototype.post = function () {
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: this.metrics.numCommandFailures,
 						error: this.metrics.numCommandErrors,
 						total: this.metrics.numCommandPasses + this.metrics.numCommandFailures + this.metrics.numCommandErrors
@@ -630,7 +733,7 @@
 				doh._report = function () {
 					_report.apply( this, arguments );
 
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: doh._failureCount,
 						error: doh._errorCount,
 						total: doh._testCount
@@ -653,7 +756,7 @@
 				$(Screw).bind( 'after', function () {
 					var	passed = $( '.passed' ).length,
 						failed = $( '.failed' ).length;
-					submit({
+					submit(window.TestSwarm.result = {
 						fail: failed,
 						error: 0,
 						total: failed + passed
