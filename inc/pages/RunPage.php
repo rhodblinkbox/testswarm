@@ -28,6 +28,11 @@ class RunPage extends Page {
 		$this->displayPageTitle = false;
 		$this->displayNavBar = false;
 		$this->useContainerCssClass = true;
+		
+		if ( $browserInfo->getSwarmUaItem()->id === "PS3" ) {
+			$this->bodyScripts[] = swarmpath( "js/base64encoder.js");
+		}
+		
 		$this->bodyScripts[] = swarmpath( "js/run.js?" . time() );
 
 		$client = null;
