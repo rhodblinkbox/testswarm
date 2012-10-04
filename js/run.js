@@ -7,8 +7,8 @@
  * @package TestSwarm
  */
 (function ( $, SWARM, undefined ) {
-	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut;
-
+	var currRunId, currRunUrl, testTimeout, pauseTimer, cmds, errorOut, PS3ChunkSize = 32768, isPS3 = /PlayStation 3/i.test(navigator.userAgent);
+	
 	function msg( htmlMsg ) {
 		$( '#msg' ).html( htmlMsg );
 	}
@@ -51,16 +51,21 @@
 	errorOut = 0;
 	cmds = {
 		reload: function () {
-			if( window.parent !== window && !!window.parent.Main && !!window.parent.Main.reload ) {	
-				
+			if( window.parent !== window && !!window.parent.Main && !!window.parent.Main.reload ) {					
 				log( 'run.js: cmds.reload: Maple detected, reloading parent: window.parent.Main.reload();' );	
 				// Samsung 2010 seems to need a delay in order to reload the page and bootstrap correctly (otherwise page doesn't start 'ticking down' at all!)
 				setTimeout(function() {
 					window.parent.Main.reload();	// Samsung 2010 and 2011 runs testswarm in an iframe. Reload parent instead of this window.
 				}, 2000);
 			} else {
-				log( 'run.js: cmds.reload: window.location.reload();' );		
-				window.top.location.reload();
+				if (isPS3) {
+					log( 'run.js: cmds.reload: window.location.reload();' );
+					window.location.reload();
+				} else {
+					log( 'run.js: cmds.reload: window.top.location.reload();' );
+					window.top.location.reload();
+				}
+
 			}
 		}
 	};
@@ -72,16 +77,85 @@
 	 */
 	function retrySend( query, retry, ok ) {
 		function error( errMsg ) {
-				if ( errorOut > SWARM.conf.client.saveRetryMax ) {
-					cmds.reload();
-				} else {
-					errorOut += 1;
-					errMsg = errMsg ? (' (' + errMsg + ')') : '';
-					msg( 'Error connecting to server' + errMsg + ', retrying...' );
-					setTimeout( retry, SWARM.conf.client.saveRetrySleep * 1000 );
+			if ( errorOut > SWARM.conf.client.saveRetryMax ) {
+				cmds.reload();
+			} else {
+				errorOut += 1;
+				errMsg = errMsg ? (' (' + errMsg + ')') : '';
+				msg( 'Error connecting to server' + errMsg + ', retrying...' );
+				setTimeout( retry, SWARM.conf.client.saveRetrySleep * 1000 );
+			}
+		}		
+		
+		function submitChunkedRequest( query ) {								
+			// PS3 needs to have the form submission chunked as too big requests ( >64kb ) are truncated
+			
+			function splitData( data, chunkSize ) {
+				var regex = new RegExp('.{1,' + chunkSize + '}', 'g');
+				return data.match(regex);
+			}
+			
+			// encode data to base64
+			var encodedData = Base64.encode( query );
+			// split data into 32 kb chunks
+			var chunks = splitData( encodedData, PS3ChunkSize );
+			
+			// Initalize submission
+			function chunkSuccessResponse(chunkResponseData, textStatus, jqXHR) 
+			{ 
+				// callback on last chunk submission contains server response.
+				if( chunkResponseData !== '' ) {	
+					var jsonData = jQuery.parseJSON(chunkResponseData);
+					if ( jsonData.error ) {
+						log( 'run.js: retrySend: chunked request: PS3MultipartRequest.php: success: incorrect data' );	
+						error( jsonData.error.info );
+					} else {
+						log( 'run.js: retrySend: chunked request: PS3MultipartRequest.php: success' );	
+						errorOut = 0;
+						ok.apply( this, jsonData );
+					}
 				}
+			}
+			
+			function submitChunks() 
+			{ 
+				log( 'run.js: retrySend: chunked request: PS3MultipartRequestInit.php: success' );	
+				for(var i = 0; i < chunks.length; i++) {
+					var chunk = chunks[i];
+					var chunkRequestData = { runId: currRunId, chunkNumber: i, totalChunks: chunks.length, data: chunk};
+					$.ajax({
+						type: 'POST',
+						url: SWARM.conf.web.contextpath + 'PS3MultipartRequest.php',
+						timeout: SWARM.conf.client.saveReqTimeout * 1000,
+						cache: false,
+						data: chunkRequestData,
+						success: chunkSuccessResponse,
+						error: error							
+					});
+				}
+			}
+		
+			var initializationData = { totalChunks: chunks.length, runId: currRunId };
+			$.ajax({
+				type: 'POST',
+				url: SWARM.conf.web.contextpath + 'PS3MultipartRequestInit.php',
+				timeout: SWARM.conf.client.saveReqTimeout * 1000,
+				cache: false,
+				data: initializationData,
+				success: submitChunks,
+				error: error							
+			});
+		}			
+		
+		if( isPS3 && ( typeof query === "string" || typeof query === "object" ) ) {
+			var queryString = typeof query === "object" ? JSON.stringify( query ) : query;			
+			if ( queryString.length > PS3ChunkSize ) {	
+				submitChunkedRequest( queryString );
+				return;
+			}			
 		}
-
+		
+		// default results submission
 		$.ajax({
 			type: 'POST',
 			url: SWARM.conf.web.contextpath + 'api.php',
@@ -90,9 +164,13 @@
 			data: query,
 			dataType: 'json',
 			success: function ( data ) {
+				log( 'run.js: retrySend: ajax: success' );	
+				
 				if ( !data || data.error ) {
+					log( 'run.js: retrySend: ajax: success: incorrect data' );	
 					error( data.error.info );
 				} else {
+					log('run.js: retrySend: ajax: success' );						
 					errorOut = 0;
 					ok.apply( this, arguments );
 				}
@@ -275,18 +353,10 @@
 	SWARM.runDone = function () {
 		log( 'run.js: runDone(): reloading page...' );
 		cmds.reload();
-		return;
-		
-		// code below won't get executed as we are reloading the test runner page
-		
-		log( 'run.js: runDone(): 1: iframe count: ' + $('iframe').length );
-		cancelTest();
-		log( 'run.js: runDone(): 2: iframe count: ' + $('iframe').length );
-		runTests({ timeoutMsg: 'Cooling down.' });
-		log( 'run.js: runDone(): 3: iframe count: ' + $('iframe').length );		
 	};
 
 	function handleMessage(e) {
+		log( 'run.js: handleMessage(e)' );
 		e = e || window.event;
 		retrySend( e.data, function () {
 			handleMessage(e);
