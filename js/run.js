@@ -164,13 +164,10 @@
 			data: query,
 			dataType: 'json',
 			success: function ( data ) {
-				log( 'run.js: retrySend: ajax: success' );	
-				
 				if ( !data || data.error ) {
 					log( 'run.js: retrySend: ajax: success: incorrect data' );	
 					error( data.error.info );
 				} else {
-					log('run.js: retrySend: ajax: success' );						
 					errorOut = 0;
 					ok.apply( this, arguments );
 				}
