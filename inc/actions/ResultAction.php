@@ -46,7 +46,9 @@ class ResultAction extends Action {
 				total,
 				fail,
 				updated,
-				created
+				created,
+				report_html_size,
+				LENGTH( report_html ) as \'compressed_size\'
 			FROM runresults
 			WHERE id = %u;',
 			$resultsID
@@ -127,6 +129,9 @@ class ResultAction extends Action {
 			'error' => $row->error,
 			'clientID' => $row->client_id,
 			'status' => self::getStatus( $row->status ),
+			'reportHtmlSize' => $row->report_html_size,
+			'reportHtmlCompressedSize' => $row->compressed_size,
+			'reportHtmlCompressionRatio' => $row->report_html_size == 0 ? 0 : round( ($row->report_html_size - $row->compressed_size) / $row->report_html_size * 100 / 1, 2 )
 		);
 
 		// If still busy or if the client was lost, then the last update time is irrelevant

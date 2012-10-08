@@ -230,7 +230,6 @@ abstract class Page {
 				<a class="brand" href="<?php echo swarmpath( '' );?>"><?php echo htmlspecialchars( $this->getContext()->getConf()->web->title ); ?></a>
 				<div class="nav-collapse">
 					<ul class="nav">
-						<li><a href="<?php echo swarmpath( '' ); ?>">Home</a></li>
 						<li class="dropdown" id="swarm-projectsmenu">
 							<a href="<?php echo swarmpath( 'projects' ); ?>" class="dropdown-toggle" data-toggle="dropdown" data-target="#swarm-projectsmenu">
 								Projects
@@ -254,6 +253,7 @@ foreach ( $projects as $project ) {
 						<li><a href="<?php echo swarmpath( 'scores' ); ?>">Scores</a></li>
 						<li><a href="<?php echo swarmpath( 'dashboard' ); ?>#table">Dashboard</a></li>
 						<li><a href="<?php echo swarmpath( 'info' ); ?>">Info</a></li>
+						<li><a href="<?php echo swarmpath( 'resetUserCookies.html' ); ?>">Reset Cookies</a></li>
 					</ul>
 					<ul class="nav pull-right">
 <?php
