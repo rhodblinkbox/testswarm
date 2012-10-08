@@ -100,6 +100,7 @@ class SaverunAction extends Action {
 				fail = %u,
 				error = %u,
 				report_html = %s,
+				report_html_size = %u,
 				updated = %s
 			WHERE id = %u
 			LIMIT 1;',
@@ -108,6 +109,7 @@ class SaverunAction extends Action {
 			$fail,
 			$error,
 			gzencode( $reportHtml ),
+			strlen ( $reportHtml ),
 			swarmdb_dateformat( SWARM_NOW ),
 
 			$resultsID
