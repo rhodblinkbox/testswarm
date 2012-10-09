@@ -92,12 +92,13 @@
 <script type="text/javascript" src="/testswarm/js/bootstrap-tooltip.js"></script>
 <script type="text/javascript">
 	var arrayHelper = {
-		common: function(a1, a2, compare) {			
+		// TODO: change this method to be on the prototype of array
+		common: function(a1, a2, compareFn) {			
 			// find elements in both arrays
 			var results = [];
 			angular.forEach(a1, function( a ) {
 				angular.forEach(a2, function( b ) {
-					if( compare(a, b) ) {
+					if( compareFn.call( this, a, b ) ) {
 						results.push( [a, b] );
 					}
 				});
@@ -105,13 +106,14 @@
 			
 			return results;
 		},
-		leftOnly: function(a1, a2, compare) {
+		// TODO: change this method to be on the prototype of array
+		leftOnly: function(a1, a2, compareFn) {
 			// find elements only in a1 array
 			var results = [];
 			angular.forEach(a1, function( a ) {
 				var isFound = false;
 				angular.forEach(a2, function( b ) {
-					if( compare(a, b) ) {
+					if( compareFn.call( this, a, b) ) {
 						isFound = true;
 					}
 				});
@@ -122,6 +124,7 @@
 			
 			return results;						
 		},
+		// TODO: change this method to be on the prototype of array
 		remove: function( arr, obj ) {
 			var i = arr.length;
 			while( i > 0 ) {
@@ -132,6 +135,29 @@
 				}
 			}
 		}
+	};
+	
+	// TODO: change this method to be on the prototype of array
+	arrayHelper.syncArrays = function syncArrays( clientArray, serverArray, compareFn, updateEntityFn ) {		
+		// find entities to remove
+		var clientEntities = arrayHelper.leftOnly( clientArray, serverArray, compareFn );
+		angular.forEach( clientEntities, function( clientEntity ) {
+			arrayHelper.remove( clientArray, clientEntity );
+		});
+		
+		// find entities to update
+		var matchedEntities = arrayHelper.common( serverArray, clientArray, compareFn );
+		angular.forEach( matchedEntities, function( data ) {
+			var serverEntity = data[0];
+			var clientEntity = data[1];
+			updateEntityFn.call( this, clientEntity, serverEntity );
+		});
+		
+		// find entities to add
+		var serverEntities = arrayHelper.leftOnly( serverArray, clientArray, compareFn );
+		angular.forEach( serverEntities, function( serverEntity ) {
+			clientArray.push( serverEntity );
+		});		
 	};
 	
 	function Device (device, now, deviceErrorThreshold, deviceWarningThreshold) {		
@@ -304,27 +330,10 @@
 							serverDevices.push( new Device( data, $scope.serverTime, config.deviceErrorThreshold, config.deviceWarningThreshold ) );
 						});						
 						
-						var compareFn = function compare( a, b ) { return a.matches(b); };
-						
-						// find devices to update
-						var update = arrayHelper.common( serverDevices, $scope.devices, compareFn );
-						angular.forEach( update, function( data ) {
-							var serverDevice = data[0];
-							var clientDevice = data[1];
-							clientDevice.update(serverDevice, $scope.serverTime);
-						});
-						
-						// find devices to remove
-						var clientOnly = arrayHelper.leftOnly( $scope.devices, serverDevices, compareFn );
-						angular.forEach( clientOnly, function( clientDevice ) {
-							arrayHelper.remove( $scope.devices, clientDevice );
-						});
-						
-						// find devices to add
-						var serverOnly = arrayHelper.leftOnly( serverDevices, $scope.devices, compareFn );
-						angular.forEach( serverOnly, function( serverDevice ) {
-							$scope.devices.push( serverDevice );
-						});		
+						// update client devices with server devices array
+						var compareFn = function compareFn( a, b ) { return a.matches(b); };
+						var updateDeviceFn = function updateDeviceFn( clientDevice, serverDevice ) { clientDevice.update(serverDevice, $scope.serverTime); };
+						arrayHelper.syncArrays( $scope.devices, serverDevices, compareFn, updateDeviceFn );
 						
 						$scope.secondsToUpdate = config.refreshInterval;			
 						setupTimeout();

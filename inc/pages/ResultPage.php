@@ -123,6 +123,15 @@ class ResultPage extends Page {
 				)
 				: ''
 			)
+			. '<tr><th>Results size</th><td>'
+				. 'compressed: '
+				. self::formatBytes( $data['resultInfo']['reportHtmlCompressedSize'] )
+				. ' / uncompressed: '
+				. self::formatBytes( $data['resultInfo']['reportHtmlSize'] )
+				. ' / ratio: '
+				. $data['resultInfo']['reportHtmlCompressionRatio']
+				. '%'
+			. '</td></tr>'
 			. '</tbody></table>';
 
 		$html .= '<h3>Results</h3>'
@@ -151,6 +160,20 @@ class ResultPage extends Page {
 		return $html;
 	}
 
+	protected function formatBytes($bytes, $precision = 2) { 
+		$units = array('B', 'KB', 'MB', 'GB', 'TB'); 
+
+		$bytes = max($bytes, 0); 
+		$pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
+		$pow = min($pow, count($units) - 1); 
+
+		// Uncomment one of the following alternatives
+		$bytes /= pow(1024, $pow);
+		// $bytes /= (1 << (10 * $pow)); 
+
+		return round($bytes, $precision) . ' ' . $units[$pow]; 
+	} 
+	
 	protected function serveRawResults( $resultsID ) {
 		$db = $this->getContext()->getDB();
 

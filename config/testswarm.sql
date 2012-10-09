@@ -224,6 +224,8 @@ CREATE TABLE `runresults` (
 
   -- HTML snapshot of the test results page.
   `report_html` text NOT NULL default '',
+  
+  `report_html_size` INT NOT NULL DEFAULT '0',
 
   -- Hash of random-generated token. To use as authentication to be allowed to
   -- store runresults in this rpw. This protects SaverunAction from bad
