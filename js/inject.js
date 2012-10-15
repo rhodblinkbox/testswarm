@@ -439,14 +439,16 @@
 					}
 
 					// take only the #wrapper and #html as a test result
-					remove('json');
-					remove('xml');
-					remove('object');
 					remove('angularJsSwarm');
 					remove('application');
 					
 					return trimSerialize();
 				};
+				
+				// override xml, json and object scenario outputs so html is cleaner
+				angular.scenario.output('xml', function(context, runner, model) { });
+				angular.scenario.output('json', function(context, runner, model) { });
+				angular.scenario.output('object', function(context, runner, model) { });
 				
 				angular.scenario.output('angularJsSwarm', function(context, runner, model) {
 				
