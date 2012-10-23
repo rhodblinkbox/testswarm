@@ -25,6 +25,7 @@ class InfoAction extends Action {
 				"general" => $conf->general,
 				"web" => $conf->web,
 				"client" => $conf->client,
+				"browserSets" => $conf->browserSets,
 			),
 			"session" => array(
 				"username" => $request->getSessionData( "username" ),
