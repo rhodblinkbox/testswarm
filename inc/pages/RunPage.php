@@ -54,6 +54,8 @@ class RunPage extends Page {
 			$this->saveClientIdInCookie( $clientId );
 		}		
 		
+		$deviceIP = $this->context->getRequest()->getIP();
+		
 		$html = '<script>'
 			. 'SWARM.client_id = ' . json_encode( $clientId ) . ';'
 			. 'SWARM.run_token = ' . json_encode( $runToken ) . ';'
@@ -70,7 +72,7 @@ class RunPage extends Page {
 						. '" title="' . htmlspecialchars( $uaItem->displaytitle ) . '">'
 					. '<span class="label">' . htmlspecialchars( $uaItem->displaytitle ) . '</span>'
 					. '<br/>'
-					. '<span class="label label-info" id="deviceName"></span>'
+					. '<span class="label label-info" id="deviceName">' . htmlspecialchars( $deviceIP ) . '</span>'
 					. '</div>'
 				. '</div>'
 				. '<div class="span7">'
