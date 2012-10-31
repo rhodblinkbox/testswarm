@@ -1,6 +1,5 @@
 # Created while installing/using TestSwarm
 .htaccess
-config/testswarm.json
 favicon.ico
 robots.txt
 scripts/*.pl
@@ -17,3 +16,4 @@ testswarm.ini
 /cache/version_info.json
 /cache/phpbrowscap/cache.php
 /testswarm.pnproj
+/testswarm.iml
