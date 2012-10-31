@@ -1,6 +1,5 @@
 # Created while installing/using TestSwarm
 .htaccess
-config/testswarm.json
 favicon.ico
 robots.txt
 scripts/*.pl
