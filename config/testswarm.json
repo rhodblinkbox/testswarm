@@ -8,7 +8,7 @@
 	"web": {
 		"server": "localhost:8889",
 		"contextpath": "/testswarm",
-		"title": "TheDictator - TestSwarm",
+		"title": "TheDictator",
 		"ajaxUpdateInterval": "60"
 	},
 	"debug": {
@@ -20,7 +20,7 @@
 	"browserSets": {
 		"default": [
 			"Chrome|22",
-			"Opera|11|60",
+			"Philips 2012 High",
 			"Technika MStar",
 			"Technika Avtrex",
 			"Samsung 2012",
