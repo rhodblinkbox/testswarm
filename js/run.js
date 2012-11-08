@@ -177,8 +177,10 @@
 			}
 		});
 	}
-
+	
 	function getTests() {
+		hideTimeoutTimer();
+	
 		if ( currRunId === undefined ) {
 			log( 'Connected to the swarm.' );
 		}
@@ -205,7 +207,7 @@
 
 	function timeoutCheck( runInfo ) {
 		// if test really timed out? check database
-		retrySend( { action: 'runner', run_id: currRunId, type: 'timeoutCheck' }, function () {
+		retrySend( { action: 'runner', resultsId: runInfo.resultsId, type: 'timeoutCheck' }, function () {
 			log('run.js: timeoutCheck(): retry');
 			timeoutCheck( runInfo );
 		}, function ( data ) {
@@ -254,10 +256,31 @@
 	}
 	
 	function setupTestTimeout( runInfo ) {
+		timeoutCheckCountdown( runInfo, SWARM.conf.client.runTimeout );
+	}
+
+	function hideTimeoutTimer() {
+		$( '#timeoutTimer' ).hide();
+	}
+	
+	function logTimeoutCountdown(secondsLeft) {
+		$( '#timeoutCountdown' ).html( secondsLeft );
+		$( '#timeoutTimer' ).show();
+	}
+	
+	function timeoutCheckCountdown( runInfo, secondsLeft ) {
+		logTimeoutCountdown( secondsLeft );
+		
+		if ( secondsLeft === 0 ) {
+			timeoutCheck( runInfo );
+			return;
+		}
+		
 		// Timeout after a period of time
 		testTimeout = setTimeout( function () {
-			timeoutCheck( runInfo );
-		}, SWARM.conf.client.runTimeout * 1000 );
+			secondsLeft--;
+			timeoutCheckCountdown( runInfo, secondsLeft );
+		}, 1000 );
 	}
 	
 	/**

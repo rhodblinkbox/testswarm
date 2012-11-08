@@ -72,7 +72,7 @@ class RunPage extends Page {
 						. '" title="' . htmlspecialchars( $uaItem->displaytitle ) . '">'
 					. '<span class="label">' . htmlspecialchars( $uaItem->displaytitle ) . '</span>'
 					. '<br/>'
-					. '<span class="label label-info" id="deviceName">' . htmlspecialchars( $deviceIP ) . '</span>'
+					. '<span class="label label-info" id="deviceName" title="Device IP address or Testswarm Client ID">' . htmlspecialchars( $deviceIP ) . '</span>'
 					. '</div>'
 				. '</div>'
 				. '<div class="span7">'
@@ -82,6 +82,7 @@ class RunPage extends Page {
 			. '</div>'
 			. '<div id="iframes"></div>'
 			. '<div class="well">'
+				. '<div id="timeoutTimer">Timeout check in <strong><span id="timeoutCountdown"></span></strong>s</div>'
 				. '<h3>History</h3>'
 				. '<ul id="history"></ul>'
 			. '</div>';
