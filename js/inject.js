@@ -87,7 +87,11 @@
 			} else if ( !/^https?:\/\//.test( href ) ) {
 				href = cur + href;
 			}
-			links[i].href = href;
+            
+			//Opera Philips fix
+            if(links[i].href != href){
+			    links[i].href = href;
+            }
 		}
 
 		return ( '<html>' + doc.documentElement.innerHTML + '</html>' )
