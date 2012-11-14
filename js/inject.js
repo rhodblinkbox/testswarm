@@ -176,20 +176,21 @@
 		return query;
 	}
 	
-	function specStart() {
+	function notifyServerAboutStepStart() {
 		var params = {
 			fail: angular.testSwarmResults.fail,
 			error: angular.testSwarmResults.error,
 			total: angular.testSwarmResults.total,
 			beatRate: beatRate,
 			action: 'runner',
-			type: 'specStart'
+			type: 'stepStart'
 		};
 	
 		params = extendParams( params );
+		params.resultsId = params.results_id;	// RunnerAction.php requires resultsId parameter rather than resultsId
 		var url = baseUrl + 'api.php?' + objectToQuerystring( params );
 				
-		log('spec Start ... ' + url);	
+		log('step Start ... ' + url);	
 		var img = new Image();
 		// TODO: use onLoad event
 		//img.onLoad = function () { };
@@ -469,11 +470,6 @@
 					model.on('SpecBegin', function(spec) {
 						log('Spec Begin: ' + spec.name);
 						angular.testSwarmResults.total++;
-						
-						// override beatRate with expected test duration. spec.duration is not implemented yet, value should come from the test.
-						beatRate = spec.duration || defaultBeatRate;
-						specStart();						
-						window.TestSwarm.heartbeat();	// we are still alive, trigger heartbeat so test execution won't time out
 					});
 					
 					model.on('SpecEnd', function(spec) {
@@ -502,6 +498,11 @@
 
 					model.on('StepBegin', function(spec, step) {					
 						log('StepBegin: ' + spec.name + ', ' + step.name);
+						
+						// override beatRate with expected test duration. spec.duration is not implemented yet, value should come from the test.
+						beatRate = spec.duration || defaultBeatRate;
+						notifyServerAboutStepStart();						
+						window.TestSwarm.heartbeat();	// we are still alive, trigger heartbeat so test execution won't time out
 					});
 
 					model.on('StepEnd', function(spec, step) {					
