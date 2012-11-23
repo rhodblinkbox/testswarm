@@ -10,32 +10,33 @@
 class RunnerAction extends Action {
 
 	/**
-	 * @actionMethod GET: Required.
-	 * @actionParam int run_id
+	 * @actionMethod GET/POST: Required.
+	 * @actionParam int resultsId
 	 * @actionParam string type: one of 'specStart', 'timeoutCheck'
 	 */
 	public function doAction() {
 		$request = $this->getContext()->getRequest();
 		
-		$runID = $request->getInt( "run_id" );
+		$resultsId = $request->getInt( "resultsId" );
 		$type = $request->getVal( "type" );
 
-		if ( !$runID || !$type ) {
+		if ( !$resultsId || !$type ) {
 			$this->setError( "missing-parameters" );
 			return;
 		}
 		
-		if ( !in_array( $type, array( "specStart", "timeoutCheck" ) ) ) {
+		if ( !in_array( $type, array( "stepStart", "timeoutCheck" ) ) ) {
 			$this->setError( "invalid-input" );
 			return;
 		}
 		
 		$now = time();		
 		$db = $this->getContext()->getDB();
+		$conf = $this->getContext()->getConf();
 		$result = "";
 		
 		switch( $type ) {
-			case "specStart":
+			case "stepStart":
 				if ( !$request->wasGetted() ) {
 					$this->setError( "requires-get" );
 					return;
@@ -60,16 +61,14 @@ class RunnerAction extends Action {
 						total = %u,
 						expected_update = %s,
 						updated = %s
-					WHERE run_id = %u
-					AND status = 1
-					AND ( expected_update IS NULL OR expected_update < %u );",
+					WHERE id = %u
+					AND status = 1;",
 					$fail,
 					$error,
 					$total,
 					swarmdb_dateformat( $expected_update ),
 					swarmdb_dateformat( $now ),
-					$runID,
-					swarmdb_dateformat( $expected_update )
+					$resultsId
 				));
 				
 				$result = "ok";
@@ -80,19 +79,23 @@ class RunnerAction extends Action {
 					$this->setError( "requires-post" );
 					return;
 				}
-				
-				$timeoutMargin = 10;	// 10 seconds margin
-				$timestamp = $now + $timeoutMargin;
-				
-				// Check if run is timedout. Null expected_update stands for not timedout.
-				$isTimedout = (bool) $db->getOne(str_queryf(
-					"SELECT IF(expected_update IS NULL, false, expected_update > %u)
+
+				$timestamp = $now - $conf->client->expectedUpdateTimeoutMargin;
+
+				$expected_update = $db->getOne(str_queryf(
+					"SELECT expected_update
 					FROM runresults
-					WHERE run_id = %u;",
-					swarmdb_dateformat( $timestamp ),
-					$runID
+					WHERE id = %u;",
+					$resultsId
 				));
+
+				$isTimedout = true;
 				
+				if ( $expected_update !== null ) {
+					$expected_update = gmstrtotime( $expected_update );
+					$isTimedout = $expected_update < $timestamp;
+				}
+
 				$result = array(
 					"testTimedout" => $isTimedout ? 'true' : 'false'
 				);

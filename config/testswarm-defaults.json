@@ -27,15 +27,50 @@
 		"saveRetryMax": 3,
 		"saveRetrySleep": 5,
 		"requireRunToken": false,
-		"refreshControl": 0
+		"refreshControl": 0,
+		"expectedUpdateTimeoutMargin": 10
 	},
 	"storage": {
 		"cacheDir": "$1/cache"
 	},
 	"browserSets": {
 		"default": [
-			"Chrome|18",
-			"Chrome|19",
+			"Chrome|23",
+			"Philips 2012 High",
+			"Technika MStar",
+			"Technika Avtrex",
+			"Samsung 2012",
+			"Toshiba 2011",
+			"Toshiba 2012",
+            "LG NetCast 2011",
+            "LG NetCast 2012"
+		],
+		"all devices": [
+			"Chrome|23",
+			"Technika MStar",
+			"Technika Avtrex",
+			"Philips 2011",
+            "Philips 2012 Low",
+            "Philips 2012 High",
+			"Samsung 2010",
+			"Samsung 2011",
+			"Samsung 2012",
+			"LG NetCast 2011",
+			"LG NetCast 2012",
+			"Toshiba 2011",
+			"Toshiba 2012",
+			"PS3",
+			"Google TV"
+		],
+		"currentDesktop": [
+			"Chrome|23",
+			"Firefox|12",
+			"IE|9",
+			"Opera|11|60",
+			"Safari|5|1"
+		],
+		"allDesktop": [
+			"Chrome|23",
 			"Firefox|11",
 			"Firefox|12",
 			"Firefox|13",
@@ -61,16 +96,25 @@
 			"Opera Mini|2",
 			"Palm Web|1",
 			"Palm Web|2",
-			"IEMobile|7",
-			"PS3",
-			"Google TV"
+			"IEMobile|7"
 		],
-		"currentDesktop": [
-			"Chrome|19",
-			"Firefox|12",
-			"IE|9",
-			"Opera|11|60",
-			"Safari|5|1"
+		"Consoles": [
+			"PS3"
+		],
+		"TVs": [
+			"Technika MStar",
+			"Technika Avtrex",
+			"Philips 2011",
+            "Philips 2012 Low",
+            "Philips 2012 High",
+			"Samsung 2010",
+			"Samsung 2011",
+			"Samsung 2012",
+			"LG NetCast 2011",
+			"LG NetCast 2012",
+			"Toshiba 2011",
+			"Toshiba 2012",
+			"Google TV"
 		]
 	},
 	"debug": {

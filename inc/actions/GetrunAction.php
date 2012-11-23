@@ -77,15 +77,18 @@ class GetrunAction extends Action {
 			if ( $row->run_url && $row->job_name && $row->run_name ) {
 				// Create stub runresults entry
 				$storeToken = sha1( mt_rand() );
+				$now = time();
+				$expected_update = $now + $conf->client->expectedUpdateTimeoutMargin;
 				$isInserted = $db->query(str_queryf(
 					'INSERT INTO runresults
-					(run_id, client_id, status, store_token, updated, created)
-					VALUES(%u, %u, 1, %s, %s, %s);',
+					(run_id, client_id, status, store_token, updated, created, expected_update)
+					VALUES(%u, %u, 1, %s, %s, %s, %s);',
 					$runID,
 					$clientID,
 					sha1( $storeToken ),
 					swarmdb_dateformat( SWARM_NOW ),
-					swarmdb_dateformat( SWARM_NOW )
+					swarmdb_dateformat( SWARM_NOW ),
+					swarmdb_dateformat( $expected_update )
 				));
 				$runresultsId = $db->getInsertId();
 				if ( !$isInserted || !$runresultsId ) {
@@ -113,9 +116,9 @@ class GetrunAction extends Action {
 				$runInfo = array(
 					"id" => $runID,
 					"url" => $row->run_url,
-					"desc" => $row->job_name . ' ' . $row->run_name,
-					'resultsId' => $runresultsId,
-					'resultsStoreToken' => $storeToken,
+					"desc" => $row->job_name . " " . $row->run_name,
+					"resultsId" => $runresultsId,
+					"resultsStoreToken" => $storeToken,
 				);
 			}
 		}
